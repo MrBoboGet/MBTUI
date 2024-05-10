@@ -1,0 +1,24 @@
+{
+    "Dependancies": 
+    [
+        "MBCLI"
+    ],
+    "ExtraIncludes": 
+    [
+
+    ],
+    "Language":"C++",
+    "Standard":"C++17",
+    "Targets": 
+    {
+        "MBTUI": 
+        {
+            "OutputName":"MBTUI",
+            "Sources": 
+            [
+                "/MBTUI.cpp"
+            ],
+            "TargetType":"Library"
+        }
+    }
+}
