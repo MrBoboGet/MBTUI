@@ -16,7 +16,10 @@
             "OutputName":"MBTUI",
             "Sources": 
             [
-                "/MBTUI.cpp"
+                "/MBTUI.cpp",
+                "/BufferWindow.cpp",
+                "/Layerer.cpp",
+                "/Stacker.cpp"
             ],
             "TargetType":"Library"
         }

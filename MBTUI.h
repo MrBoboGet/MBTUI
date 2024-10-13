@@ -36,6 +36,7 @@ namespace MBTUI
         int m_CursorPosition = 0;
         std::vector<MBUnicode::GraphemeCluster> m_LineBuffer;
         MBCLI::Dimensions m_Dims;
+        MBCLI::Dimensions m_MaxDims;
 
         REPL_Line p_TokenizeString();
         std::string p_GetCompletion(REPL_Line const& Line);
@@ -53,7 +54,7 @@ namespace MBTUI
         {
             return m_LineBuffer;   
         }
-
+        void SetMaxDims(MBCLI::Dimensions Dims);
         virtual bool Updated() override;
         virtual void HandleInput(MBCLI::ConsoleInput const& Input) override;
         virtual void SetDimensions(MBCLI::Dimensions NewDimensions) override;
@@ -62,11 +63,6 @@ namespace MBTUI
         virtual MBCLI::TerminalWindowBuffer GetBuffer() override;
     };
 
-    class Layerer : MBCLI::Window
-    {
-    public:
-
-    };
 
 
 
@@ -74,7 +70,7 @@ namespace MBTUI
     class KeyMapper
     {
     public:
-        typedef MBUtility::MOFunction<void()> ActionType;
+        typedef std::shared_ptr<MBUtility::MOFunction<void()>> ActionType;
         struct RemappingResult
         {
             std::vector<std::variant<std::vector<MBCLI::ConsoleInput>,ActionType>> Events;

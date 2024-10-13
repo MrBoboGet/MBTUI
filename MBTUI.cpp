@@ -283,12 +283,25 @@ namespace MBTUI
         ReturnValue.Position.RowIndex = 0;
         return ReturnValue;
     }
+    void REPL::SetMaxDims(MBCLI::Dimensions Dims)
+    {
+        m_MaxDims = Dims;
+    }
     MBCLI::TerminalWindowBuffer REPL::GetBuffer()
     {
         m_Updated = false;
-        MBCLI::TerminalWindowBuffer ReturnValue;
 
-
+        MBCLI::Dimensions Dims = m_Dims;
+        Dims.Height = m_MaxDims.Height < 0 ? Dims.Height : std::min(m_MaxDims.Height,Dims.Height);
+        Dims.Width = m_MaxDims.Width < 0 ? Dims.Width : std::min(m_MaxDims.Width,Dims.Width);
+        
+        MBCLI::TerminalWindowBuffer ReturnValue(Dims.Width,Dims.Height);
+        int i = 0;
+        for(auto const& Character : m_LineBuffer)
+        {
+            ReturnValue.SetCharacter(MBCLI::TerminalCharacter(Character),Dims.Height-1,i);
+            i++;
+        }
         return ReturnValue;
     }
 
@@ -310,6 +323,18 @@ namespace MBTUI
         else if(m_Bindings[m_CurrentLowerBound].ReboundCharacters == m_CurrentInput)
         {
             m_OutputAvailable = true;
+        }
+        else
+        {
+            //check if the first mismatching character is less than the full size of the current input,
+            //if true, no possible match can exist
+            if((std::mismatch(m_CurrentInput.begin(),m_CurrentInput.end(),
+                        m_Bindings[m_CurrentLowerBound].ReboundCharacters.begin(),m_Bindings[m_CurrentLowerBound].ReboundCharacters.end()).first
+                - m_CurrentInput.begin()) != m_CurrentInput.size())
+            {
+                m_OutputAvailable = true;
+                m_CurrentLowerBound = m_Bindings.size();
+            }
         }
     }
     bool KeyMapper::OutputAvailable()
