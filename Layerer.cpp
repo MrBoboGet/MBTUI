@@ -8,10 +8,8 @@ namespace MBTUI
             m_Layers[m_ActiveLayerIndex].Window->SetFocus(false);
         }
         Layer& NewLayer = m_Layers.emplace_back();
-        NewLayer.Dims = m_Dims;
         NewLayer.Window = std::move(Window);
         NewLayer.Window->SetFocus(true);
-        NewLayer.Window->SetDimensions(m_Dims);
         m_ActiveLayerIndex = m_Layers.size()-1;
         m_Updated = true;
     }
@@ -47,18 +45,6 @@ namespace MBTUI
             m_Layers[m_ActiveLayerIndex].Window->HandleInput(Input);   
         }
     }
-    void Layerer::SetDimensions(MBCLI::Dimensions NewDimensions) 
-    {
-        if(NewDimensions != m_Dims || m_Updated)
-        {
-            m_Updated = true;
-            m_Dims = NewDimensions;
-            for(auto& Layer : m_Layers)
-            {
-                Layer.Window->SetDimensions(NewDimensions);
-            }
-        }
-    }
     void Layerer::SetFocus(bool IsFocused) 
     {
         if(m_ActiveLayerIndex < m_Layers.size())
@@ -74,13 +60,22 @@ namespace MBTUI
         }
         return MBCLI::CursorInfo();
     }
-    MBCLI::TerminalWindowBuffer Layerer::GetBuffer() 
+    void  Layerer::WriteBuffer(MBCLI::BufferView View,bool Redraw) 
     {
-        MBCLI::TerminalWindowBuffer ReturnValue(m_Dims.Width,m_Dims.Height);
+        //MBCLI::TerminalWindowBuffer ReturnValue(m_Dims.Width,m_Dims.Height);
+        if(m_Updated)
+        {
+            Redraw = true;
+            View.Clear();
+        }
+        m_Updated = false;
         for(auto& Layer : m_Layers)
         {
-            ReturnValue.WriteBuffer(Layer.Window->GetBuffer(),Layer.RowOffset,Layer.ColumnOffset);
+            //ReturnValue.WriteBuffer(Layer.Window->GetBuffer(),Layer.RowOffset,Layer.ColumnOffset);
+            if(Redraw || Layer.Window->Updated())
+            {
+                Layer.Window->WriteBuffer(View.SubView(Layer.RowOffset,Layer.ColumnOffset),Redraw);
+            }
         }
-        return ReturnValue;
     }
 }

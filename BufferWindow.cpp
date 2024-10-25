@@ -4,23 +4,11 @@ namespace MBTUI
 {
     bool BufferWindow::Updated() 
     {
-        bool ReturnValue = false;
-        if(m_Updated)
-        {
-            ReturnValue = true;
-            m_Updated = false;
-        }
-        return ReturnValue;
+        return m_Updated;
     }
     void BufferWindow::HandleInput(MBCLI::ConsoleInput const& Input) 
     {
         //
-    }
-    void BufferWindow::SetDimensions(MBCLI::Dimensions NewDimensions) 
-    {
-        m_Updated = true;
-        m_CroppedBuffer = MBCLI::TerminalWindowBuffer(NewDimensions.Width,NewDimensions.Height);
-        m_CroppedBuffer.WriteBuffer(m_OriginalBuffer,0,0);
     }
     void BufferWindow::SetFocus(bool IsFocused) 
     {
@@ -35,14 +23,19 @@ namespace MBTUI
     void BufferWindow::SetBuffer(MBCLI::TerminalWindowBuffer Buffer)
     {
         m_OriginalBuffer = Buffer;
-        m_CroppedBuffer = Buffer;
+        m_Updated = true;
     }
     BufferWindow::BufferWindow(MBCLI::TerminalWindowBuffer Buffer)
     {
         SetBuffer(std::move(Buffer));
     }
-    MBCLI::TerminalWindowBuffer BufferWindow::GetBuffer() 
+    void BufferWindow::WriteBuffer(MBCLI::BufferView View,bool Redraw)
     {
-        return m_CroppedBuffer;
+        m_Updated = false;
+        View.WriteBuffer(0,0,m_OriginalBuffer);
+    }
+    MBCLI::Dimensions BufferWindow::PreferedDimensions(MBCLI::Dimensions Dims) 
+    {
+        return MBCLI::Dimensions(m_OriginalBuffer.GetWidth(),m_OriginalBuffer.GetHeight());
     }
 }

@@ -263,14 +263,6 @@ namespace MBTUI
             }
         }
     }
-    void REPL::SetDimensions(MBCLI::Dimensions NewDimensions) 
-    {
-        if(m_Dims != NewDimensions)
-        {
-            m_Updated = true;   
-        }
-        m_Dims = NewDimensions;
-    }
     void REPL::SetFocus(bool IsFocused)
     {
            
@@ -287,22 +279,27 @@ namespace MBTUI
     {
         m_MaxDims = Dims;
     }
-    MBCLI::TerminalWindowBuffer REPL::GetBuffer()
+    
+    void  REPL::WriteBuffer(MBCLI::BufferView View,bool Redraw) 
     {
+        View.SubView(0,0,MBCLI::Dimensions(View.GetDimensions().Width,1)).Clear();
         m_Updated = false;
-
+        m_Dims = View.GetDimensions();
         MBCLI::Dimensions Dims = m_Dims;
         Dims.Height = m_MaxDims.Height < 0 ? Dims.Height : std::min(m_MaxDims.Height,Dims.Height);
         Dims.Width = m_MaxDims.Width < 0 ? Dims.Width : std::min(m_MaxDims.Width,Dims.Width);
         
         MBCLI::TerminalWindowBuffer ReturnValue(Dims.Width,Dims.Height);
-        int i = 0;
-        for(auto const& Character : m_LineBuffer)
+        //int i = 0;
+        //for(auto const& Character : m_LineBuffer)
+        //{
+        //    ReturnValue.SetCharacter(MBCLI::TerminalCharacter(Character),Dims.Height-1,i);
+        //    i++;
+        //}
+        for(int i = 0; i < m_LineBuffer.size();i++)
         {
-            ReturnValue.SetCharacter(MBCLI::TerminalCharacter(Character),Dims.Height-1,i);
-            i++;
+            View.WriteCharacters(Dims.Height-1,i,m_LineBuffer[i].GetView());
         }
-        return ReturnValue;
     }
 
 

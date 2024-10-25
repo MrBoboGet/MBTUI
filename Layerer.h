@@ -3,7 +3,7 @@
 
 namespace MBTUI
 {
-    class Layerer : MBCLI::Window
+    class Layerer : public MBCLI::Window
     {
         struct Layer
         {
@@ -33,9 +33,8 @@ namespace MBTUI
         void PopLayer();
         virtual bool Updated() override;
         virtual void HandleInput(MBCLI::ConsoleInput const& Input) override;
-        virtual void SetDimensions(MBCLI::Dimensions NewDimensions) override;
         virtual void SetFocus(bool IsFocused) override;
         virtual MBCLI::CursorInfo GetCursorInfo() override;
-        virtual MBCLI::TerminalWindowBuffer GetBuffer() override;
+        virtual void WriteBuffer(MBCLI::BufferView View,bool Redraw) override;
     };
 }
