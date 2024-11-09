@@ -66,6 +66,11 @@ namespace MBTUI
     }
     void Stacker::WriteBuffer(MBCLI::BufferView View,bool Redraw) 
     {
+        if(m_Updated)
+        {
+            View.Clear();   
+            Redraw = true;
+        }
         m_Updated = false;
         if(View.GetDimensions() != m_Dims)
         {
