@@ -1,11 +1,38 @@
 (import text)
+#Base for all lisp defined elements, 
+#default working as a stacker
 (defclass TMLElement ()
     (attributes (dict))
     (children (list))
+    (state-changed false)
+
     (set-children (children)
         (setl :children this children)
     )
+    (constructor (children)
+        (setl :children this children)
+    )
+    (updated ()
+        (if :state-changed this (return true))
+        (any (map updated :children this))
+    )
+    (handle-input (input)
+        false
+    )
+    (set-focus ()
+        false
+    )
+    (get-cursor-info ()
+        false
+    )
+
+
+
+    (update ()
+        (setl :state-changed this true)
+    )
 )
+
 
 (defclass Attribute ()
     (name "")

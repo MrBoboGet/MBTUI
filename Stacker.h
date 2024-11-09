@@ -3,6 +3,8 @@
 #include <MBCLI/MBCLI.h>
 #include <MBCLI/Window.h>
 #include <MBUtility/SmartPtr.h>
+
+#include <MBUtility/Iterator.h>
 namespace MBTUI
 {
     class Stacker : public MBCLI::Window
@@ -20,6 +22,67 @@ namespace MBTUI
         void p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw);
         void p_AssignDimensions();
         bool m_Reversed = false;
+
+        class ChildIterator : public MBUtility::Iterator_Base<ChildIterator,SubWindow>
+        {
+            int m_Offset = 0;
+            Stacker* m_AssociatedStacker;
+            ChildIterator(Stacker& AssociatedStacker)
+            {
+                m_AssociatedStacker = &AssociatedStacker;
+                if(!m_AssociatedStacker->m_Reversed)
+                {
+                    m_Offset = AssociatedStacker.m_StackedWindows.size()-1;
+                }
+            }
+
+        public:
+            static ChildIterator begin(Stacker& Stacker)
+            {
+                return ChildIterator(Stacker);
+            }
+            static ChildIterator end(Stacker& Stacker)
+            {
+                auto ReturnValue = ChildIterator(Stacker);
+                if(Stacker.m_Reversed)
+                {
+                    ReturnValue.m_Offset = Stacker.m_StackedWindows.size();
+                }
+                else
+                {
+                    ReturnValue.m_Offset = -1;
+                }
+                return ReturnValue;
+            }
+            SubWindow& GetRef()
+            {
+                return m_AssociatedStacker->m_StackedWindows[m_Offset];
+            }
+            void Increment()
+            {
+                if(m_AssociatedStacker->m_Reversed)
+                {
+                    m_Offset += 1;
+                }
+                else
+                {
+                    m_Offset -= 1;   
+                }
+            }
+            bool IsEqual(ChildIterator const& OtherIterator) const
+            {
+                return OtherIterator.m_Offset == m_Offset;
+            }
+        };
+
+        auto begin()
+        {
+            return ChildIterator::begin(*this);
+        }
+        auto end()
+        {
+            return ChildIterator::end(*this);
+        }
     public:
 
         void AddElement(MBUtility::SmartPtr<MBCLI::Window> NewWindow)
@@ -40,5 +103,6 @@ namespace MBTUI
         virtual void SetFocus(bool IsFocused)  override;
         virtual MBCLI::CursorInfo GetCursorInfo() override;
         virtual void WriteBuffer(MBCLI::BufferView View,bool Redraw) override;
+        virtual MBCLI::Dimensions PreferedDimensions(MBCLI::Dimensions SuggestedDimensions) override;
     };
 }

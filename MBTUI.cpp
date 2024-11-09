@@ -275,21 +275,28 @@ namespace MBTUI
         ReturnValue.Position.RowIndex = 0;
         return ReturnValue;
     }
+    MBCLI::Dimensions REPL::PreferedDimensions(MBCLI::Dimensions SuggestedDimensions) 
+    {
+        MBCLI::Dimensions  ReturnValue;
+        ReturnValue.Height = 1;
+        ReturnValue.Width = SuggestedDimensions.Width;
+        return ReturnValue;
+    }
     void REPL::SetMaxDims(MBCLI::Dimensions Dims)
     {
         m_MaxDims = Dims;
     }
     
-    void  REPL::WriteBuffer(MBCLI::BufferView View,bool Redraw) 
+    void  REPL::WriteBuffer(MBCLI::BufferView SuppliedView,bool Redraw) 
     {
-        View.SubView(0,0,MBCLI::Dimensions(View.GetDimensions().Width,1)).Clear();
+        auto View = SuppliedView.SubView(0,0,MBCLI::Dimensions(SuppliedView.GetDimensions().Width,1));
+        View.Clear();
         m_Updated = false;
         m_Dims = View.GetDimensions();
         MBCLI::Dimensions Dims = m_Dims;
         Dims.Height = m_MaxDims.Height < 0 ? Dims.Height : std::min(m_MaxDims.Height,Dims.Height);
         Dims.Width = m_MaxDims.Width < 0 ? Dims.Width : std::min(m_MaxDims.Width,Dims.Width);
         
-        MBCLI::TerminalWindowBuffer ReturnValue(Dims.Width,Dims.Height);
         //int i = 0;
         //for(auto const& Character : m_LineBuffer)
         //{

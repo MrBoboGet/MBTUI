@@ -24,45 +24,22 @@ namespace MBTUI
     void Stacker::p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw)
     {
         int RowOffset = 0;
-        if(m_Reversed)
+        for(auto& Window : *this)
         {
-            for(auto& Window : m_StackedWindows)
+            if(RowOffset > m_Dims.Height)
             {
-                if(RowOffset > m_Dims.Height)
-                {
-                    break;
-                }
-                MBCLI::Dimensions UsedDims = Window.Dims;
-                UsedDims.Width = m_Dims.Width;
-                UsedDims.Height = UsedDims.Height < 0 ? 10 : UsedDims.Height;
-                Window.Window->WriteBuffer(View.SubView(RowOffset,0,UsedDims),Redraw);
-                RowOffset += UsedDims.Height;
+                break;
             }
-        }
-        else
-        {
-            if(m_StackedWindows.size() == 0)
-            {
-                return;   
-            }
-            for(int i = m_StackedWindows.size()-1;i >= 0;i--)
-            {
-                auto& SubWindow = m_StackedWindows[i];
-                if(RowOffset > m_Dims.Height)
-                {
-                    break;
-                }
-                MBCLI::Dimensions UsedDims = SubWindow.Dims;
-                UsedDims.Width = m_Dims.Width;
-                UsedDims.Height = UsedDims.Height < 0 ? 10 : UsedDims.Height;
-                SubWindow.Window->WriteBuffer(View.SubView(RowOffset,0,UsedDims),Redraw);
-                RowOffset += UsedDims.Height;
-            }
+            MBCLI::Dimensions UsedDims = Window.Dims;
+            UsedDims.Width = m_Dims.Width;
+            UsedDims.Height = UsedDims.Height < 0 ? 1 : UsedDims.Height;
+            Window.Window->WriteBuffer(View.SubView(RowOffset,0,UsedDims),Redraw);
+            RowOffset += UsedDims.Height;
         }
     }
     void Stacker::p_AssignDimensions()
     {
-        MBCLI::Dimensions SuggestedDims = MBCLI::Dimensions(m_Dims.Width,-1);
+        MBCLI::Dimensions SuggestedDims = MBCLI::Dimensions(m_Dims.Width,m_Dims.Height);
         if(m_Reversed)
         {
             for(auto& SubWindow : m_StackedWindows)
@@ -96,5 +73,26 @@ namespace MBTUI
             p_AssignDimensions();
         }
         p_UpdateBuffer(View,Redraw);
+    }
+    MBCLI::Dimensions Stacker::PreferedDimensions(MBCLI::Dimensions SuggestedDimensions)
+    {
+        MBCLI::Dimensions ReturnValue;
+        ReturnValue.Width = SuggestedDimensions.Width;
+        ReturnValue.Height = 0;
+        for(auto& Child : *this)
+        {
+            auto ChildPreferedDims = Child.Window->PreferedDimensions(SuggestedDimensions);
+            if(ChildPreferedDims.Height < 0)
+            {
+                ReturnValue.Height = SuggestedDimensions.Height;
+                return ReturnValue;
+            }
+            ReturnValue.Height += ChildPreferedDims.Height;
+        }
+        if(ReturnValue.Height >= SuggestedDimensions.Height)
+        {
+            ReturnValue.Height = SuggestedDimensions.Height;
+        }
+        return ReturnValue;
     }
 }

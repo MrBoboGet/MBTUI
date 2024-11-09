@@ -2,5 +2,5 @@
 	"PacketName":"MBTUI",
 	"Attributes":[],
 	"ExportedExecutableTargets":[],
-	"Dependancies":["MBCLI","MBLisp"]
+	"Dependancies":["MBCLI"]
 }

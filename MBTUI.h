@@ -6,17 +6,6 @@
 
 namespace MBTUI
 {
-    class LispWindow : public MBCLI::WindowManager
-    {
-           
-    };
-    class LispWindowManager : public MBCLI::WindowManager
-    {
-
-    };
-
-
-
     struct REPL_Line
     {
         std::vector<std::string> Tokens;
@@ -59,6 +48,7 @@ namespace MBTUI
         virtual void HandleInput(MBCLI::ConsoleInput const& Input) override;
         virtual void SetFocus(bool IsFocused) override;
         virtual MBCLI::CursorInfo GetCursorInfo() override;
+        virtual MBCLI::Dimensions PreferedDimensions(MBCLI::Dimensions SuggestedDimensions) override;
         virtual void WriteBuffer(MBCLI::BufferView View,bool Redraw) override;
     };
 
