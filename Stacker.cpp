@@ -70,6 +70,7 @@ namespace MBTUI
         {
             View.Clear();   
             Redraw = true;
+            p_AssignDimensions();
         }
         m_Updated = false;
         if(View.GetDimensions() != m_Dims)

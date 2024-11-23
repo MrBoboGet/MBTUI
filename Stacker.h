@@ -90,13 +90,16 @@ namespace MBTUI
             auto& NewSubwindow = m_StackedWindows.emplace_back();
             NewSubwindow.Window = std::move(NewWindow);
             m_Updated = true;
-            p_AssignDimensions();
+        }
+        void ClearChildren()
+        {
+            m_StackedWindows.clear();
+            m_Updated = true;
         }
         void SetReversed(bool Reversed)
         {
             m_Reversed = true;
             m_Updated = true;
-            p_AssignDimensions();
         }
         virtual bool Updated() override;
         virtual void HandleInput(MBCLI::ConsoleInput const& Input) override;
