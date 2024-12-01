@@ -14,14 +14,27 @@ namespace MBTUI
         {
             MBUtility::SmartPtr<MBCLI::Window> Window;
             MBCLI::Dimensions Dims;
+            size_t FlowIndex = 0;
+            int FlowPosition = 0;
         };
         std::vector<SubWindow> m_StackedWindows;
         MBCLI::TerminalWindowBuffer m_Buffer;
         MBCLI::Dimensions m_Dims;
 
+        size_t m_SelectedIndex = -1;
+        size_t m_FlowIndex = -1;
+        int m_FlowWidth = 0;
+        bool m_VerticalFlow = true;
+        bool m_Overflow = false;
+
+
+        bool m_Reversed = false;
+
+
+
+
         void p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw);
         void p_AssignDimensions();
-        bool m_Reversed = false;
 
         class ChildIterator : public MBUtility::Iterator_Base<ChildIterator,SubWindow>
         {
@@ -83,7 +96,13 @@ namespace MBTUI
         {
             return ChildIterator::end(*this);
         }
+
+
     public:
+        void SetFlowDirection(bool IsVertical);
+        void SetFlowWidth(int Size);
+        void EnableOverlow(bool OverlowEnabled);
+
 
         void AddElement(MBUtility::SmartPtr<MBCLI::Window> NewWindow)
         {
