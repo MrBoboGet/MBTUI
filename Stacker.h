@@ -101,7 +101,7 @@ namespace MBTUI
     public:
         void SetFlowDirection(bool IsVertical);
         void SetFlowWidth(int Size);
-        void EnableOverlow(bool OverlowEnabled);
+        void EnableOverflow(bool OverlowEnabled);
 
 
         void AddElement(MBUtility::SmartPtr<MBCLI::Window> NewWindow)

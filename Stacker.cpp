@@ -55,15 +55,15 @@ namespace MBTUI
         int OtherFlowOffset = 0;
 
 
-        int MBCLI::Dimensions::* MainFlowMember = (!m_Overflow || m_VerticalFlow) ? &MBCLI::Dimensions::Height : &MBCLI::Dimensions::Width;
-        int MBCLI::Dimensions::* OtherFlowDirection = (m_Overflow && !m_VerticalFlow) ? &MBCLI::Dimensions::Width : &MBCLI::Dimensions::Height;
+        int MBCLI::Dimensions::* MainFlowMember = m_VerticalFlow ? &MBCLI::Dimensions::Height : &MBCLI::Dimensions::Width;
+        int MBCLI::Dimensions::* OtherFlowDirection = MainFlowMember == &MBCLI::Dimensions::Height ? &MBCLI::Dimensions::Width : &MBCLI::Dimensions::Height;
 
         size_t CurrentFlowIndex = 0;
 
         int NextOtherFlowIncrement = 0;
         for(auto& Window : *this)
         {
-            if(FlowOffset > m_Dims.*MainFlowMember)
+            if(FlowOffset >= m_Dims.*MainFlowMember)
             {
                 if(!m_Overflow)
                 {
@@ -74,7 +74,7 @@ namespace MBTUI
             {
                 break;
             }
-            if(CurrentFlowIndex != Window.FlowIndex)
+            if(CurrentFlowIndex != Window.FlowIndex && m_Overflow)
             {
                 FlowOffset = 0;
                 OtherFlowOffset += NextOtherFlowIncrement;
@@ -107,7 +107,7 @@ namespace MBTUI
         }
         m_FlowWidth = Size;
     }
-    void Stacker::EnableOverlow(bool OverlowEnabled)
+    void Stacker::EnableOverflow(bool OverlowEnabled)
     {
         if(m_Overflow != OverlowEnabled)
         {
@@ -118,8 +118,8 @@ namespace MBTUI
     void Stacker::p_AssignDimensions()
     {
         MBCLI::Dimensions SuggestedDims = MBCLI::Dimensions(m_Dims.Width,m_Dims.Height);
-        int MBCLI::Dimensions::* MainFlowMember = (!m_Overflow || m_VerticalFlow) ? &MBCLI::Dimensions::Height : &MBCLI::Dimensions::Width;
-        int MBCLI::Dimensions::* OtherFlowDirection = (m_Overflow && !m_VerticalFlow) ? &MBCLI::Dimensions::Width : &MBCLI::Dimensions::Height;
+        int MBCLI::Dimensions::* MainFlowMember = m_VerticalFlow ? &MBCLI::Dimensions::Height : &MBCLI::Dimensions::Width;;
+        int MBCLI::Dimensions::* OtherFlowDirection = MainFlowMember == &MBCLI::Dimensions::Height ? &MBCLI::Dimensions::Width : &MBCLI::Dimensions::Height;
         int CurrentOverflow = 0;
         size_t CurrentFlowIndex = 0;
         for(auto& SubWindow : *this)
@@ -166,22 +166,23 @@ namespace MBTUI
     }
     MBCLI::Dimensions Stacker::PreferedDimensions(MBCLI::Dimensions SuggestedDimensions)
     {
-        MBCLI::Dimensions ReturnValue;
-        ReturnValue.Width = SuggestedDimensions.Width;
-        ReturnValue.Height = 0;
+        MBCLI::Dimensions ReturnValue = SuggestedDimensions;
+        int MBCLI::Dimensions::* MainFlowMember = m_VerticalFlow ? &MBCLI::Dimensions::Height : &MBCLI::Dimensions::Width;;
+        int MBCLI::Dimensions::* OtherFlowDirection = MainFlowMember == &MBCLI::Dimensions::Height ? &MBCLI::Dimensions::Width : &MBCLI::Dimensions::Height;
+        ReturnValue.*OtherFlowDirection = 0;
         for(auto& Child : *this)
         {
             auto ChildPreferedDims = Child.Window->PreferedDimensions(SuggestedDimensions);
-            if(ChildPreferedDims.Height < 0)
-            {
-                ReturnValue.Height = SuggestedDimensions.Height;
-                return ReturnValue;
-            }
-            ReturnValue.Height += ChildPreferedDims.Height;
+            ReturnValue.*MainFlowMember += ChildPreferedDims.*MainFlowMember;
+            ReturnValue.*OtherFlowDirection = std::max(ReturnValue.*OtherFlowDirection,ChildPreferedDims.*OtherFlowDirection);
         }
         if(ReturnValue.Height >= SuggestedDimensions.Height)
         {
             ReturnValue.Height = SuggestedDimensions.Height;
+        }
+        if(ReturnValue.Width >= SuggestedDimensions.Width)
+        {
+            ReturnValue.Width = SuggestedDimensions.Width;
         }
         return ReturnValue;
     }
