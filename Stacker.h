@@ -20,6 +20,7 @@ namespace MBTUI
         std::vector<SubWindow> m_StackedWindows;
         MBCLI::TerminalWindowBuffer m_Buffer;
         MBCLI::Dimensions m_Dims;
+        MBCLI::Dimensions m_PreferedDims;
 
         size_t m_SelectedIndex = -1;
         size_t m_FlowIndex = -1;
@@ -29,8 +30,9 @@ namespace MBTUI
 
 
         bool m_Reversed = false;
+        bool m_OverflowReversed = false;
 
-
+        std::vector<int> m_FlowSizes;
 
 
         void p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw);
@@ -102,6 +104,7 @@ namespace MBTUI
         void SetFlowDirection(bool IsVertical);
         void SetFlowWidth(int Size);
         void EnableOverflow(bool OverlowEnabled);
+        void SetOverflowDirection(bool Reversed);
 
 
         void AddElement(MBUtility::SmartPtr<MBCLI::Window> NewWindow)

@@ -58,6 +58,14 @@ namespace MBTUI
         int MBCLI::Dimensions::* MainFlowMember = m_VerticalFlow ? &MBCLI::Dimensions::Height : &MBCLI::Dimensions::Width;
         int MBCLI::Dimensions::* OtherFlowDirection = MainFlowMember == &MBCLI::Dimensions::Height ? &MBCLI::Dimensions::Width : &MBCLI::Dimensions::Height;
 
+        if(m_OverflowReversed)
+        {
+            OtherFlowOffset = m_PreferedDims.*OtherFlowDirection - 1;
+            if(OtherFlowOffset < 0)
+            {
+                return;   
+            }
+        }
         size_t CurrentFlowIndex = 0;
 
         int NextOtherFlowIncrement = 0;
@@ -77,8 +85,16 @@ namespace MBTUI
             if(CurrentFlowIndex != Window.FlowIndex && m_Overflow)
             {
                 FlowOffset = 0;
-                OtherFlowOffset += NextOtherFlowIncrement;
+                if(!m_OverflowReversed)
+                {
+                    OtherFlowOffset += NextOtherFlowIncrement;
+                }
+                else
+                {
+                    OtherFlowOffset -= m_FlowSizes[Window.FlowIndex];
+                }
                 NextOtherFlowIncrement = 0;
+                CurrentFlowIndex = Window.FlowIndex;
             }
             if(m_Overflow)
             {
@@ -115,6 +131,14 @@ namespace MBTUI
         }
         m_Overflow = OverlowEnabled;
     }
+    void Stacker::SetOverflowDirection(bool Reversed)
+    {
+        if(m_OverflowReversed != Reversed)
+        {
+            m_Updated = true;
+        }
+        m_OverflowReversed = Reversed;
+    }
     void Stacker::p_AssignDimensions()
     {
         MBCLI::Dimensions SuggestedDims = MBCLI::Dimensions(m_Dims.Width,m_Dims.Height);
@@ -122,23 +146,48 @@ namespace MBTUI
         int MBCLI::Dimensions::* OtherFlowDirection = MainFlowMember == &MBCLI::Dimensions::Height ? &MBCLI::Dimensions::Width : &MBCLI::Dimensions::Height;
         int CurrentOverflow = 0;
         size_t CurrentFlowIndex = 0;
+
+        int MainFlowSize = 0;
+
+        int TotalOtherFlowSize = 0;
+        int CurrentOtherFlowSize = 0;
+        m_FlowSizes.clear();
         for(auto& SubWindow : *this)
         {
             SubWindow.Dims = SubWindow.Window->PreferedDimensions(SuggestedDims);
             SubWindow.Dims.*MainFlowMember = SubWindow.Dims.*MainFlowMember < 0 ? 1 : SubWindow.Dims.*MainFlowMember;
             SubWindow.FlowPosition = CurrentOverflow;
             CurrentOverflow += SubWindow.Dims.*MainFlowMember;
+            if(m_Overflow)
+            {
+                SubWindow.Dims.*OtherFlowDirection = (m_FlowWidth > 0) ? m_FlowWidth : SubWindow.Dims.*OtherFlowDirection;
+            }
+            CurrentOtherFlowSize = std::max(CurrentOtherFlowSize,SubWindow.Dims.*OtherFlowDirection);
+            if(MainFlowSize < m_Dims.*MainFlowMember)
+            {
+                MainFlowSize = CurrentOverflow;
+            }
             if(CurrentOverflow > m_Dims.*MainFlowMember)
             {
                 CurrentFlowIndex += 1;
                 CurrentOverflow = 0;
+                TotalOtherFlowSize += CurrentOtherFlowSize;
+                m_FlowSizes.push_back(CurrentOtherFlowSize);
+                CurrentOtherFlowSize = 0;
+                MainFlowSize = m_Dims.*MainFlowMember;
             }
             SubWindow.FlowIndex = CurrentFlowIndex;
-            if(m_Overflow == true)
-            {
-                SubWindow.Dims.*OtherFlowDirection = (m_FlowWidth > 0) ? m_FlowWidth : SubWindow.Dims.*OtherFlowDirection;
-            }
         }
+        if(CurrentOtherFlowSize != 0 || CurrentFlowIndex == m_FlowSizes.size())
+        {
+            m_FlowSizes.push_back(CurrentOtherFlowSize);   
+        }
+        TotalOtherFlowSize = std::max(TotalOtherFlowSize,CurrentOtherFlowSize);
+        m_PreferedDims.*OtherFlowDirection = TotalOtherFlowSize;
+        m_PreferedDims.*MainFlowMember = MainFlowSize;
+
+        m_PreferedDims.Height = std::min(m_PreferedDims.Height,m_Dims.Height);
+        m_PreferedDims.Width = std::min(m_PreferedDims.Width,m_Dims.Width);
     }
     void Stacker::SetFocus(bool IsFocused)
     {
@@ -166,24 +215,37 @@ namespace MBTUI
     }
     MBCLI::Dimensions Stacker::PreferedDimensions(MBCLI::Dimensions SuggestedDimensions)
     {
-        MBCLI::Dimensions ReturnValue = SuggestedDimensions;
-        int MBCLI::Dimensions::* MainFlowMember = m_VerticalFlow ? &MBCLI::Dimensions::Height : &MBCLI::Dimensions::Width;;
-        int MBCLI::Dimensions::* OtherFlowDirection = MainFlowMember == &MBCLI::Dimensions::Height ? &MBCLI::Dimensions::Width : &MBCLI::Dimensions::Height;
-        ReturnValue.*OtherFlowDirection = 0;
-        for(auto& Child : *this)
+        if(m_Dims.Height == -1 || m_Dims.Width == -1)
         {
-            auto ChildPreferedDims = Child.Window->PreferedDimensions(SuggestedDimensions);
-            ReturnValue.*MainFlowMember += ChildPreferedDims.*MainFlowMember;
-            ReturnValue.*OtherFlowDirection = std::max(ReturnValue.*OtherFlowDirection,ChildPreferedDims.*OtherFlowDirection);
+            m_Dims.Height = SuggestedDimensions.Height;
+            m_Dims.Width = SuggestedDimensions.Width;
+            m_Dims.Height = m_Dims.Height < 0 ? 0 : m_Dims.Height;
+            m_Dims.Width = m_Dims.Width < 0 ? 0 : m_Dims.Width;
+            m_Updated = true;
         }
-        if(ReturnValue.Height >= SuggestedDimensions.Height)
+        if(m_Updated)
         {
-            ReturnValue.Height = SuggestedDimensions.Height;
+            p_AssignDimensions();   
         }
-        if(ReturnValue.Width >= SuggestedDimensions.Width)
-        {
-            ReturnValue.Width = SuggestedDimensions.Width;
-        }
-        return ReturnValue;
+        //MBCLI::Dimensions ReturnValue = SuggestedDimensions;
+        //int MBCLI::Dimensions::* MainFlowMember = m_VerticalFlow ? &MBCLI::Dimensions::Height : &MBCLI::Dimensions::Width;;
+        //int MBCLI::Dimensions::* OtherFlowDirection = MainFlowMember == &MBCLI::Dimensions::Height ? &MBCLI::Dimensions::Width : &MBCLI::Dimensions::Height;
+        //ReturnValue.*OtherFlowDirection = 0;
+        //int TotalOtherFlowSize = 0;
+        //for(auto& Child : *this)
+        //{
+        //    auto ChildPreferedDims = Child.Window->PreferedDimensions(SuggestedDimensions);
+        //    ReturnValue.*MainFlowMember += ChildPreferedDims.*MainFlowMember;
+        //    ReturnValue.*OtherFlowDirection = std::max(ReturnValue.*OtherFlowDirection,ChildPreferedDims.*OtherFlowDirection);
+        //}
+        //if(ReturnValue.Height >= SuggestedDimensions.Height)
+        //{
+        //    ReturnValue.Height = SuggestedDimensions.Height;
+        //}
+        //if(ReturnValue.Width >= SuggestedDimensions.Width)
+        //{
+        //    ReturnValue.Width = SuggestedDimensions.Width;
+        //}
+        return m_PreferedDims;
     }
 }
