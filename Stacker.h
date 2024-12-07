@@ -27,6 +27,7 @@ namespace MBTUI
         int m_FlowWidth = 0;
         bool m_VerticalFlow = true;
         bool m_Overflow = false;
+        bool m_Border = false;
 
 
         bool m_Reversed = false;
@@ -105,6 +106,7 @@ namespace MBTUI
         void SetFlowWidth(int Size);
         void EnableOverflow(bool OverlowEnabled);
         void SetOverflowDirection(bool Reversed);
+        void SetBorder(bool HasBorder);
 
 
         void AddElement(MBUtility::SmartPtr<MBCLI::Window> NewWindow)

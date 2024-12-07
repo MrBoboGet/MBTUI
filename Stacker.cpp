@@ -61,24 +61,47 @@ namespace MBTUI
         if(m_OverflowReversed)
         {
             OtherFlowOffset = m_PreferedDims.*OtherFlowDirection - m_FlowSizes[0];
+            if(m_Border)
+            {
+                OtherFlowOffset -= 2;
+            }
             if(OtherFlowOffset < 0)
             {
                 return;   
             }
         }
+        else if(m_Border)
+        {
+            OtherFlowOffset += 1;
+        }
         size_t CurrentFlowIndex = 0;
 
         int NextOtherFlowIncrement = 0;
+
+
+        MBCLI::Dimensions CurrentDims = m_Dims;
+        if(m_Border)
+        {
+            MBCLI::DrawBorder(View,0,0,m_PreferedDims.Width,m_PreferedDims.Height);
+            View.ModifyView(1,1,MBCLI::Dimensions(m_Dims.Width-2,m_Dims.Height-2));
+            CurrentDims.Width -= 2;
+            CurrentDims.Height -= 2;
+        }
+        if(CurrentDims.Width <= 0 || CurrentDims.Height <= 0)
+        {
+            return;
+        }
+
         for(auto& Window : *this)
         {
-            if(FlowOffset >= m_Dims.*MainFlowMember)
+            if(FlowOffset >= CurrentDims.*MainFlowMember)
             {
                 if(!m_Overflow)
                 {
                     break;   
                 }
             }
-            if(OtherFlowOffset >= m_Dims.*OtherFlowDirection)
+            if(OtherFlowOffset >= CurrentDims.*OtherFlowDirection)
             {
                 break;
             }
@@ -131,6 +154,14 @@ namespace MBTUI
         }
         m_Overflow = OverlowEnabled;
     }
+    void Stacker::SetBorder(bool HasBorder)
+    {
+        if(m_Border != HasBorder)
+        {
+            m_Updated = true;
+        }
+        m_Border = HasBorder;
+    }
     void Stacker::SetOverflowDirection(bool Reversed)
     {
         if(m_OverflowReversed != Reversed)
@@ -146,12 +177,23 @@ namespace MBTUI
         int MBCLI::Dimensions::* OtherFlowDirection = MainFlowMember == &MBCLI::Dimensions::Height ? &MBCLI::Dimensions::Width : &MBCLI::Dimensions::Height;
         int CurrentOverflow = 0;
         size_t CurrentFlowIndex = 0;
-
         int MainFlowSize = 0;
-
         int TotalOtherFlowSize = 0;
         int CurrentOtherFlowSize = 0;
         m_FlowSizes.clear();
+
+
+        MBCLI::Dimensions CurrentDims = m_Dims;
+        if(m_Border)
+        {
+            CurrentDims.Width -= 2;
+            CurrentDims.Height -= 2;
+        }
+        if(CurrentDims.Width <= 0 || CurrentDims.Height <= 0)
+        {
+            return;
+        }
+
         for(auto& SubWindow : *this)
         {
             SubWindow.Dims = SubWindow.Window->PreferedDimensions(SuggestedDims);
@@ -162,18 +204,18 @@ namespace MBTUI
                 SubWindow.Dims.*OtherFlowDirection = (m_FlowWidth > 0) ? m_FlowWidth : SubWindow.Dims.*OtherFlowDirection;
             }
             CurrentOtherFlowSize = std::max(CurrentOtherFlowSize,SubWindow.Dims.*OtherFlowDirection);
-            if(MainFlowSize < m_Dims.*MainFlowMember)
+            if(MainFlowSize < CurrentDims.*MainFlowMember)
             {
                 MainFlowSize = CurrentOverflow;
             }
-            if(CurrentOverflow >= m_Dims.*MainFlowMember)
+            if(CurrentOverflow >= CurrentDims.*MainFlowMember)
             {
                 CurrentFlowIndex += 1;
                 CurrentOverflow = SubWindow.Dims.*MainFlowMember;
                 TotalOtherFlowSize += CurrentOtherFlowSize;
                 m_FlowSizes.push_back(CurrentOtherFlowSize);
                 CurrentOtherFlowSize = 0;
-                MainFlowSize = m_Dims.*MainFlowMember;
+                MainFlowSize = CurrentDims.*MainFlowMember;
             }
             SubWindow.FlowIndex = CurrentFlowIndex;
             SubWindow.FlowPosition = CurrentOverflow;
@@ -185,7 +227,11 @@ namespace MBTUI
         TotalOtherFlowSize += CurrentOtherFlowSize;
         m_PreferedDims.*OtherFlowDirection = TotalOtherFlowSize;
         m_PreferedDims.*MainFlowMember = MainFlowSize;
-
+        if(m_Border)
+        {
+            m_PreferedDims.Height += 2;
+            m_PreferedDims.Width += 2;
+        }
         m_PreferedDims.Height = std::min(m_PreferedDims.Height,m_Dims.Height);
         m_PreferedDims.Width = std::min(m_PreferedDims.Width,m_Dims.Width);
     }
