@@ -60,7 +60,7 @@ namespace MBTUI
 
         if(m_OverflowReversed)
         {
-            OtherFlowOffset = m_PreferedDims.*OtherFlowDirection - 1;
+            OtherFlowOffset = m_PreferedDims.*OtherFlowDirection - m_FlowSizes[0];
             if(OtherFlowOffset < 0)
             {
                 return;   
@@ -156,7 +156,6 @@ namespace MBTUI
         {
             SubWindow.Dims = SubWindow.Window->PreferedDimensions(SuggestedDims);
             SubWindow.Dims.*MainFlowMember = SubWindow.Dims.*MainFlowMember < 0 ? 1 : SubWindow.Dims.*MainFlowMember;
-            SubWindow.FlowPosition = CurrentOverflow;
             CurrentOverflow += SubWindow.Dims.*MainFlowMember;
             if(m_Overflow)
             {
@@ -167,22 +166,23 @@ namespace MBTUI
             {
                 MainFlowSize = CurrentOverflow;
             }
-            if(CurrentOverflow > m_Dims.*MainFlowMember)
+            if(CurrentOverflow >= m_Dims.*MainFlowMember)
             {
                 CurrentFlowIndex += 1;
-                CurrentOverflow = 0;
+                CurrentOverflow = SubWindow.Dims.*MainFlowMember;
                 TotalOtherFlowSize += CurrentOtherFlowSize;
                 m_FlowSizes.push_back(CurrentOtherFlowSize);
                 CurrentOtherFlowSize = 0;
                 MainFlowSize = m_Dims.*MainFlowMember;
             }
             SubWindow.FlowIndex = CurrentFlowIndex;
+            SubWindow.FlowPosition = CurrentOverflow;
         }
         if(CurrentOtherFlowSize != 0 || CurrentFlowIndex == m_FlowSizes.size())
         {
             m_FlowSizes.push_back(CurrentOtherFlowSize);   
         }
-        TotalOtherFlowSize = std::max(TotalOtherFlowSize,CurrentOtherFlowSize);
+        TotalOtherFlowSize += CurrentOtherFlowSize;
         m_PreferedDims.*OtherFlowDirection = TotalOtherFlowSize;
         m_PreferedDims.*MainFlowMember = MainFlowSize;
 
