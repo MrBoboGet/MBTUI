@@ -16,6 +16,8 @@ namespace MBTUI
             MBCLI::Dimensions Dims;
             size_t FlowIndex = 0;
             int FlowPosition = 0;
+            int OtherFlowPosition = 0;
+            bool Redraw = false;
         };
         std::vector<SubWindow> m_StackedWindows;
         MBCLI::TerminalWindowBuffer m_Buffer;

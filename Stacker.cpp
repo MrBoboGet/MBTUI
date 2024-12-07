@@ -70,10 +70,6 @@ namespace MBTUI
                 return;   
             }
         }
-        else if(m_Border)
-        {
-            OtherFlowOffset += 1;
-        }
         size_t CurrentFlowIndex = 0;
 
         int NextOtherFlowIncrement = 0;
@@ -119,6 +115,10 @@ namespace MBTUI
                 NextOtherFlowIncrement = 0;
                 CurrentFlowIndex = Window.FlowIndex;
             }
+            if(OtherFlowOffset + m_FlowSizes[CurrentFlowIndex] <= 0 || OtherFlowOffset >= CurrentDims.*OtherFlowDirection)
+            {
+                break;
+            }
             if(m_Overflow)
             {
                 NextOtherFlowIncrement = (m_FlowWidth > 0) ? m_FlowWidth : std::max(NextOtherFlowIncrement,Window.Dims.*OtherFlowDirection);
@@ -126,7 +126,14 @@ namespace MBTUI
             MBCLI::Dimensions OffsetDims;
             OffsetDims.*MainFlowMember = FlowOffset;
             OffsetDims.*OtherFlowDirection = OtherFlowOffset;
-            Window.Window->WriteBuffer(View.SubView(OffsetDims.Height,OffsetDims.Width,Window.Dims),Redraw);
+            MBCLI::Dimensions WindowDims  = Window.Dims;
+            WindowDims.*MainFlowMember = std::min(WindowDims.*MainFlowMember,CurrentDims.*MainFlowMember - FlowOffset);
+            WindowDims.*OtherFlowDirection = std::min(WindowDims.*OtherFlowDirection,CurrentDims.*OtherFlowDirection - OtherFlowOffset);
+            if(Redraw || Window.Redraw)
+            {
+                Window.Window->WriteBuffer(View.SubView(OffsetDims.Height,OffsetDims.Width,Window.Dims),Redraw);
+            }
+            Window.Redraw = false;
             FlowOffset += Window.Dims.*MainFlowMember;
         }
     }
@@ -217,8 +224,16 @@ namespace MBTUI
                 CurrentOtherFlowSize = 0;
                 MainFlowSize = CurrentDims.*MainFlowMember;
             }
+            bool WindowUpdated = SubWindow.Window->Updated();
+            if(WindowUpdated || 
+                    (std::tie(SubWindow.FlowIndex,SubWindow.FlowPosition,SubWindow.OtherFlowPosition) 
+                     != std::tie(CurrentFlowIndex,CurrentOverflow,TotalOtherFlowSize)))
+            {
+                SubWindow.Redraw = true;
+            }
             SubWindow.FlowIndex = CurrentFlowIndex;
             SubWindow.FlowPosition = CurrentOverflow;
+            SubWindow.OtherFlowPosition = TotalOtherFlowSize;
         }
         if(CurrentOtherFlowSize != 0 || CurrentFlowIndex == m_FlowSizes.size())
         {
