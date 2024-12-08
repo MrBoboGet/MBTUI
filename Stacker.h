@@ -24,12 +24,16 @@ namespace MBTUI
         MBCLI::Dimensions m_Dims;
         MBCLI::Dimensions m_PreferedDims;
 
-        size_t m_SelectedIndex = -1;
+        MBCLI::TerminalColor m_BorderColor = MBCLI::ANSITerminalColor::BrightWhite;
+
+        int_least32_t m_SelectedIndex = -1;
+
         size_t m_FlowIndex = -1;
         int m_FlowWidth = 0;
         bool m_VerticalFlow = true;
         bool m_Overflow = false;
         bool m_Border = false;
+
 
 
         bool m_Reversed = false;
@@ -39,7 +43,7 @@ namespace MBTUI
 
 
         void p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw);
-        void p_AssignDimensions();
+        bool p_AssignDimensions();
 
         class ChildIterator : public MBUtility::Iterator_Base<ChildIterator,SubWindow>
         {
@@ -102,13 +106,14 @@ namespace MBTUI
             return ChildIterator::end(*this);
         }
 
-
     public:
         void SetFlowDirection(bool IsVertical);
         void SetFlowWidth(int Size);
         void EnableOverflow(bool OverlowEnabled);
         void SetOverflowDirection(bool Reversed);
         void SetBorder(bool HasBorder);
+
+        void SetBorderColor(MBCLI::TerminalColor Color);
 
 
         void AddElement(MBUtility::SmartPtr<MBCLI::Window> NewWindow)
