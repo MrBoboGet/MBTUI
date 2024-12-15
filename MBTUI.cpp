@@ -5,10 +5,6 @@ namespace MBTUI
 
 
 
-    bool REPL::Updated() 
-    {
-        return m_Updated;
-    }
     REPL_Line REPL::p_TokenizeString()
     {
         REPL_Line ReturnValue;
@@ -153,7 +149,7 @@ namespace MBTUI
     }
     void REPL::HandleInput(MBCLI::ConsoleInput const& Input) 
     {
-        m_Updated = true;
+        SetUpdated(true);
         if (!Input.CharacterInput.IsEmpty())
         {
             if (Input.CharacterInput == '\n' || Input.CharacterInput == "\r\n")
@@ -291,7 +287,7 @@ namespace MBTUI
     {
         auto View = SuppliedView.SubView(0,0,MBCLI::Dimensions(SuppliedView.GetDimensions().Width,1));
         View.Clear();
-        m_Updated = false;
+        SetUpdated(false);
         m_Dims = View.GetDimensions();
         MBCLI::Dimensions Dims = m_Dims;
         Dims.Height = m_MaxDims.Height < 0 ? Dims.Height : std::min(m_MaxDims.Height,Dims.Height);

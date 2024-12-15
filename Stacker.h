@@ -9,7 +9,6 @@ namespace MBTUI
 {
     class Stacker : public MBCLI::Window
     {
-        bool m_Updated = true;
         struct SubWindow
         {
             MBUtility::SmartPtr<MBCLI::Window> Window;
@@ -120,19 +119,19 @@ namespace MBTUI
         {
             auto& NewSubwindow = m_StackedWindows.emplace_back();
             NewSubwindow.Window = std::move(NewWindow);
-            m_Updated = true;
+            SetChild(*NewSubwindow.Window);
+            SetUpdated(true);
         }
         void ClearChildren()
         {
             m_StackedWindows.clear();
-            m_Updated = true;
+            SetUpdated(true);
         }
         void SetReversed(bool Reversed)
         {
             m_Reversed = true;
-            m_Updated = true;
+            SetUpdated(true);
         }
-        virtual bool Updated() override;
         virtual void HandleInput(MBCLI::ConsoleInput const& Input) override;
         virtual void SetFocus(bool IsFocused)  override;
         virtual MBCLI::CursorInfo GetCursorInfo() override;

@@ -16,7 +16,6 @@ namespace MBTUI
     public:
         typedef MBUtility::MOFunction<std::vector<std::string>(REPL_Line  const& LineInfo)> CompletionFuncType; 
     private:
-        bool m_Updated = true;
 
         //history stuff
         std::vector<std::string> m_History;
@@ -44,7 +43,6 @@ namespace MBTUI
             return m_LineBuffer;   
         }
         void SetMaxDims(MBCLI::Dimensions Dims);
-        virtual bool Updated() override;
         virtual void HandleInput(MBCLI::ConsoleInput const& Input) override;
         virtual void SetFocus(bool IsFocused) override;
         virtual MBCLI::CursorInfo GetCursorInfo() override;

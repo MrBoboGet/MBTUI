@@ -2,10 +2,6 @@
 
 namespace MBTUI
 {
-    bool BufferWindow::Updated() 
-    {
-        return m_Updated;
-    }
     void BufferWindow::HandleInput(MBCLI::ConsoleInput const& Input) 
     {
         //
@@ -23,7 +19,7 @@ namespace MBTUI
     void BufferWindow::SetBuffer(MBCLI::TerminalWindowBuffer Buffer)
     {
         m_OriginalBuffer = Buffer;
-        m_Updated = true;
+        SetUpdated(true);
     }
     BufferWindow::BufferWindow(MBCLI::TerminalWindowBuffer Buffer)
     {
@@ -31,7 +27,7 @@ namespace MBTUI
     }
     void BufferWindow::WriteBuffer(MBCLI::BufferView View,bool Redraw)
     {
-        m_Updated = false;
+        SetUpdated(false);
         View.WriteBuffer(0,0,m_OriginalBuffer);
     }
     MBCLI::Dimensions BufferWindow::PreferedDimensions(MBCLI::Dimensions Dims) 

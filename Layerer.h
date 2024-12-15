@@ -15,7 +15,6 @@ namespace MBTUI
 
         std::vector<Layer> m_Layers;
         MBCLI::Dimensions m_Dims;
-        bool m_Updated = false;
         size_t m_ActiveLayerIndex = 0;
     public:
 
@@ -31,7 +30,6 @@ namespace MBTUI
 
 
         void PopLayer();
-        virtual bool Updated() override;
         virtual void HandleInput(MBCLI::ConsoleInput const& Input) override;
         virtual void SetFocus(bool IsFocused) override;
         virtual MBCLI::CursorInfo GetCursorInfo() override;

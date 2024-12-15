@@ -11,32 +11,17 @@ namespace MBTUI
         NewLayer.Window = std::move(Window);
         NewLayer.Window->SetFocus(true);
         m_ActiveLayerIndex = m_Layers.size()-1;
-        m_Updated = true;
+        SetUpdated(true);
     }
     void Layerer::PopLayer()
     {
-        m_Updated = true;
+        SetUpdated(true);
         m_Layers.pop_back();
         m_ActiveLayerIndex = m_Layers.size()-1;
         if(m_ActiveLayerIndex < m_Layers.size())
         {
             m_Layers[m_ActiveLayerIndex].Window->SetFocus(true);   
         }
-    }
-    bool Layerer::Updated()
-    {
-        if(m_Updated)
-        {
-            return m_Updated;
-        }
-        for(auto& Layer : m_Layers)
-        {
-            if(Layer.Window->Updated())
-            {
-                return true;   
-            }
-        }
-        return false;
     }
     void Layerer::HandleInput(MBCLI::ConsoleInput const& Input)
     {
@@ -63,12 +48,12 @@ namespace MBTUI
     void  Layerer::WriteBuffer(MBCLI::BufferView View,bool Redraw) 
     {
         //MBCLI::TerminalWindowBuffer ReturnValue(m_Dims.Width,m_Dims.Height);
-        if(m_Updated)
+        if(Updated())
         {
             Redraw = true;
             View.Clear();
         }
-        m_Updated = false;
+        SetUpdated(false);
         for(auto& Layer : m_Layers)
         {
             //ReturnValue.WriteBuffer(Layer.Window->GetBuffer(),Layer.RowOffset,Layer.ColumnOffset);

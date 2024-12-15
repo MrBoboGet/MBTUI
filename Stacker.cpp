@@ -2,15 +2,6 @@
 
 namespace MBTUI
 {
-    bool Stacker::Updated() 
-    {
-        if(m_Updated)
-        {
-            return true;   
-        }
-        m_Updated = p_AssignDimensions();
-        return m_Updated;
-    }
     void Stacker::HandleInput(MBCLI::ConsoleInput const& Input) 
     {
         //navigation
@@ -232,7 +223,7 @@ namespace MBTUI
     {
         if(m_VerticalFlow != IsVertical)
         {
-            m_Updated = true;   
+            SetUpdated(true);
         }
         m_VerticalFlow = IsVertical;
     }
@@ -240,7 +231,7 @@ namespace MBTUI
     {
         if(m_FlowWidth != Size)
         {
-            m_Updated = true;   
+            SetUpdated(true);
         }
         m_FlowWidth = Size;
     }
@@ -248,7 +239,7 @@ namespace MBTUI
     {
         if(m_Overflow != OverlowEnabled)
         {
-            m_Updated = true;   
+            SetUpdated(true);
         }
         m_Overflow = OverlowEnabled;
     }
@@ -256,7 +247,7 @@ namespace MBTUI
     {
         if(m_Border != HasBorder)
         {
-            m_Updated = true;
+            SetUpdated(true);
         }
         m_Border = HasBorder;
     }
@@ -264,7 +255,7 @@ namespace MBTUI
     {
         if(m_BorderColor != Color)
         {
-            m_Updated = true;   
+            SetUpdated(true);
         }
         m_BorderColor = Color;
     }
@@ -273,7 +264,7 @@ namespace MBTUI
     {
         if(m_OverflowReversed != Reversed)
         {
-            m_Updated = true;
+            SetUpdated(true);
         }
         m_OverflowReversed = Reversed;
     }
@@ -366,15 +357,15 @@ namespace MBTUI
         if(View.GetDimensions() != m_Dims)
         {
             m_Dims = View.GetDimensions();
-            m_Updated = true;
+            SetUpdated(true);
         }
-        if(m_Updated)
+        if(Updated())
         {
             View.Clear();   
             Redraw = true;
             p_AssignDimensions();
         }
-        m_Updated = false;
+        SetUpdated(false);
         p_UpdateBuffer(View,Redraw);
     }
     MBCLI::Dimensions Stacker::PreferedDimensions(MBCLI::Dimensions SuggestedDimensions)
@@ -385,9 +376,9 @@ namespace MBTUI
             m_Dims.Width = SuggestedDimensions.Width;
             m_Dims.Height = m_Dims.Height < 0 ? 0 : m_Dims.Height;
             m_Dims.Width = m_Dims.Width < 0 ? 0 : m_Dims.Width;
-            m_Updated = true;
+            SetUpdated(true);
         }
-        if(m_Updated)
+        if(Updated())
         {
             p_AssignDimensions();   
         }
