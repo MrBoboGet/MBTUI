@@ -130,18 +130,29 @@ namespace MBTUI
     }
     void Stacker::p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw)
     {
-        if(m_Border)
+        if(m_Border && (!m_BorderDrawn || Redraw))
         {
             auto PreviousColor = View.GetWriteColor();
             View.SetWriteColor(m_BorderColor);
             MBCLI::DrawBorder(View,0,0,m_PreferedDims.Width,m_PreferedDims.Height);
             View.SetWriteColor(PreviousColor);
+            m_BorderDrawn = true;
         }
         if(m_Dims.Width <= 0 || m_Dims.Height <= 0)
         {
             return;
         }
-
+        MBCLI::Dimensions DrawOffsets;
+        if(m_Border)
+        {
+            DrawOffsets.Height = 1;
+            DrawOffsets.Width = 1;
+        }
+        else
+        {
+            DrawOffsets.Height = 0;
+            DrawOffsets.Width = 0;
+        }
         for(auto& Window : *this)
         {
             bool RedrawWindow = Redraw;
@@ -154,7 +165,10 @@ namespace MBTUI
             }
             if(RedrawWindow || Window.Window->Updated())
             {
-                Window.Window->WriteBuffer(View.SubView(Window.Offsets.Height,Window.Offsets.Width,Window.Dims),RedrawWindow);
+                MBCLI::Dimensions CurrentDrawOffset;
+                CurrentDrawOffset.Height = std::max(DrawOffsets.Height-Window.Offsets.Height,0);
+                CurrentDrawOffset.Width = std::max(DrawOffsets.Width-Window.Offsets.Width,0);
+                Window.Window->WriteBuffer(View.SubView(Window.Offsets.Height,Window.Offsets.Width,Window.Dims,CurrentDrawOffset.Height,CurrentDrawOffset.Width),RedrawWindow);
             }
             Window.PreviousDims = Window.Dims;
             Window.PreviousOffsets = Window.Offsets;
@@ -190,6 +204,7 @@ namespace MBTUI
         {
             SetUpdated(true);
             m_ClearView = true;
+            m_BorderDrawn = false;
         }
         m_Border = HasBorder;
     }
@@ -198,6 +213,7 @@ namespace MBTUI
         if(m_BorderColor != Color)
         {
             SetUpdated(true);
+            m_BorderDrawn = false;
         }
         m_BorderColor = Color;
     }
@@ -339,6 +355,7 @@ namespace MBTUI
         {
             m_Dims = View.GetDimensions();
             AssignDims = true;
+            m_BorderDrawn = false;
         }
         if(m_ClearView)
         {
@@ -350,13 +367,18 @@ namespace MBTUI
         {
             p_AssignDimensions();
         }
+        if(m_LastDrawDims != m_PreferedDims)
+        {
+            m_BorderDrawn = false;
+        }
+        m_LastDrawDims = m_PreferedDims;
         p_UpdateBuffer(View,Redraw);
         SetUpdated(false);
     }
     MBCLI::Dimensions Stacker::PreferedDimensions(MBCLI::Dimensions SuggestedDimensions)
     {
         bool AssignDims = false;
-        if(m_Dims != SuggestedDimensions || ChildUpdated())
+        if(m_Dims != SuggestedDimensions || Updated())
         {
             AssignDims = true;
         }

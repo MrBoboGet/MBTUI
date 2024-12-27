@@ -24,6 +24,9 @@ namespace MBTUI
         };
         std::vector<SubWindow> m_StackedWindows;
         MBCLI::TerminalWindowBuffer m_Buffer;
+
+
+        MBCLI::Dimensions m_LastDrawDims;
         MBCLI::Dimensions m_LastDims;
         MBCLI::Dimensions m_Dims;
         MBCLI::Dimensions m_PreferedDims;
@@ -34,15 +37,15 @@ namespace MBTUI
 
         size_t m_FlowIndex = -1;
         int m_FlowWidth = 0;
+
+        bool m_BorderDrawn = false;
+
         bool m_VerticalFlow = true;
         bool m_Overflow = false;
         bool m_Border = false;
 
-
-
         bool m_Reversed = false;
         bool m_OverflowReversed = false;
-
 
         bool m_ClearView = false;
         bool m_AssignDims = false;
