@@ -13,13 +13,18 @@ namespace MBTUI
         {
             MBUtility::SmartPtr<MBCLI::Window> Window;
             MBCLI::Dimensions Dims;
+            MBCLI::Dimensions PreviousDims;
+            //kind hacky
+            MBCLI::Dimensions Offsets;
+            MBCLI::Dimensions PreviousOffsets;
+
             size_t FlowIndex = 0;
-            int FlowPosition = 0;
-            int OtherFlowPosition = 0;
-            bool Redraw = false;
+            int FlowPosition = -1;
+            int OtherFlowPosition = -1;
         };
         std::vector<SubWindow> m_StackedWindows;
         MBCLI::TerminalWindowBuffer m_Buffer;
+        MBCLI::Dimensions m_LastDims;
         MBCLI::Dimensions m_Dims;
         MBCLI::Dimensions m_PreferedDims;
 
@@ -38,10 +43,16 @@ namespace MBTUI
         bool m_Reversed = false;
         bool m_OverflowReversed = false;
 
+
+        bool m_ClearView = false;
+        bool m_AssignDims = false;
+
         std::vector<int> m_FlowSizes;
 
+        //MBCLI::ClearCache m_ClearCache;
 
         void p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw);
+
         bool p_AssignDimensions();
 
         class ChildIterator : public MBUtility::Iterator_Base<ChildIterator,SubWindow>
@@ -119,17 +130,20 @@ namespace MBTUI
         {
             auto& NewSubwindow = m_StackedWindows.emplace_back();
             NewSubwindow.Window = std::move(NewWindow);
+            m_AssignDims = true;
             SetChild(*NewSubwindow.Window);
             SetUpdated(true);
         }
         void ClearChildren()
         {
             m_StackedWindows.clear();
+            m_ClearView = true;
             SetUpdated(true);
         }
         void SetReversed(bool Reversed)
         {
             m_Reversed = true;
+            m_ClearView = true;
             SetUpdated(true);
         }
         virtual void HandleInput(MBCLI::ConsoleInput const& Input) override;

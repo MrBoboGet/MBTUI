@@ -130,93 +130,34 @@ namespace MBTUI
     }
     void Stacker::p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw)
     {
-        int FlowOffset = 0;
-        int OtherFlowOffset = 0;
-
-
-        int MBCLI::Dimensions::* MainFlowMember = m_VerticalFlow ? &MBCLI::Dimensions::Height : &MBCLI::Dimensions::Width;
-        int MBCLI::Dimensions::* OtherFlowDirection = MainFlowMember == &MBCLI::Dimensions::Height ? &MBCLI::Dimensions::Width : &MBCLI::Dimensions::Height;
-
-        if(m_OverflowReversed)
-        {
-            OtherFlowOffset = m_PreferedDims.*OtherFlowDirection - m_FlowSizes[0];
-            if(m_Border)
-            {
-                OtherFlowOffset -= 2;
-            }
-            if(OtherFlowOffset < 0)
-            {
-                return;   
-            }
-        }
-        size_t CurrentFlowIndex = 0;
-
-        int NextOtherFlowIncrement = 0;
-
-
-        MBCLI::Dimensions CurrentDims = m_Dims;
         if(m_Border)
         {
             auto PreviousColor = View.GetWriteColor();
             View.SetWriteColor(m_BorderColor);
             MBCLI::DrawBorder(View,0,0,m_PreferedDims.Width,m_PreferedDims.Height);
             View.SetWriteColor(PreviousColor);
-            View.ModifyView(1,1,MBCLI::Dimensions(m_Dims.Width-2,m_Dims.Height-2));
-            CurrentDims.Width -= 2;
-            CurrentDims.Height -= 2;
         }
-        if(CurrentDims.Width <= 0 || CurrentDims.Height <= 0)
+        if(m_Dims.Width <= 0 || m_Dims.Height <= 0)
         {
             return;
         }
 
         for(auto& Window : *this)
         {
-            if(FlowOffset >= CurrentDims.*MainFlowMember)
+            bool RedrawWindow = Redraw;
+            if((Window.Offsets != Window.PreviousOffsets || Window.Dims != Window.PreviousDims) && 
+                    (Window.PreviousDims != MBCLI::Dimensions() && Window.PreviousOffsets != MBCLI::Dimensions()))
             {
-                if(!m_Overflow)
-                {
-                    break;   
-                }
+                View.Clear(Window.PreviousOffsets.Height,Window.PreviousOffsets.Width,Window.PreviousDims.Width,Window.PreviousDims.Height);
+                View.Clear(Window.Offsets.Height,Window.Offsets.Width,Window.Dims.Width,Window.Dims.Height);
+                RedrawWindow = true;
             }
-            if(OtherFlowOffset >= CurrentDims.*OtherFlowDirection)
+            if(RedrawWindow || Window.Window->Updated())
             {
-                break;
+                Window.Window->WriteBuffer(View.SubView(Window.Offsets.Height,Window.Offsets.Width,Window.Dims),RedrawWindow);
             }
-            if(CurrentFlowIndex != Window.FlowIndex && m_Overflow)
-            {
-                FlowOffset = 0;
-                if(!m_OverflowReversed)
-                {
-                    OtherFlowOffset += NextOtherFlowIncrement;
-                }
-                else
-                {
-                    OtherFlowOffset -= m_FlowSizes[Window.FlowIndex];
-                }
-                NextOtherFlowIncrement = 0;
-                CurrentFlowIndex = Window.FlowIndex;
-            }
-            if(OtherFlowOffset + m_FlowSizes[CurrentFlowIndex] <= 0 || OtherFlowOffset >= CurrentDims.*OtherFlowDirection)
-            {
-                break;
-            }
-            if(m_Overflow)
-            {
-                NextOtherFlowIncrement = (m_FlowWidth > 0) ? m_FlowWidth : std::max(NextOtherFlowIncrement,Window.Dims.*OtherFlowDirection);
-            }
-            MBCLI::Dimensions OffsetDims;
-            OffsetDims.*MainFlowMember = FlowOffset;
-            OffsetDims.*OtherFlowDirection = OtherFlowOffset;
-            MBCLI::Dimensions WindowDims  = Window.Dims;
-            WindowDims.*MainFlowMember = std::min(WindowDims.*MainFlowMember,CurrentDims.*MainFlowMember - FlowOffset);
-            WindowDims.*OtherFlowDirection = std::min(WindowDims.*OtherFlowDirection,CurrentDims.*OtherFlowDirection - OtherFlowOffset);
-            if(Redraw || Window.Redraw)
-            {
-                Window.Window->WriteBuffer(View.SubView(OffsetDims.Height,OffsetDims.Width,Window.Dims),Redraw);
-            }
-            Window.Redraw = false;
-            FlowOffset += Window.Dims.*MainFlowMember;
+            Window.PreviousDims = Window.Dims;
+            Window.PreviousOffsets = Window.Offsets;
         }
     }
     void Stacker::SetFlowDirection(bool IsVertical)
@@ -248,6 +189,7 @@ namespace MBTUI
         if(m_Border != HasBorder)
         {
             SetUpdated(true);
+            m_ClearView = true;
         }
         m_Border = HasBorder;
     }
@@ -279,9 +221,13 @@ namespace MBTUI
         int MainFlowSize = 0;
         int TotalOtherFlowSize = 0;
         int CurrentOtherFlowSize = 0;
+
+        const size_t PreviousFlowSizes = m_FlowSizes.size();
         m_FlowSizes.clear();
 
 
+        bool NewDims = m_LastDims != m_Dims;
+        m_LastDims = m_Dims;
         MBCLI::Dimensions CurrentDims = m_Dims;
         if(m_Border)
         {
@@ -292,39 +238,32 @@ namespace MBTUI
         {
             return false;
         }
-
         for(auto& SubWindow : *this)
         {
-            SubWindow.Dims = SubWindow.Window->PreferedDimensions(SuggestedDims);
+            if(NewDims || SubWindow.Window->Updated())
+            {
+                SubWindow.Dims = SubWindow.Window->PreferedDimensions(CurrentDims);
+            }
             SubWindow.Dims.*MainFlowMember = SubWindow.Dims.*MainFlowMember < 0 ? 1 : SubWindow.Dims.*MainFlowMember;
-            CurrentOverflow += SubWindow.Dims.*MainFlowMember;
             if(m_Overflow)
             {
                 SubWindow.Dims.*OtherFlowDirection = (m_FlowWidth > 0) ? m_FlowWidth : SubWindow.Dims.*OtherFlowDirection;
             }
+
+            CurrentOverflow += SubWindow.Dims.*MainFlowMember;
             CurrentOtherFlowSize = std::max(CurrentOtherFlowSize,SubWindow.Dims.*OtherFlowDirection);
-            if(MainFlowSize < CurrentDims.*MainFlowMember)
-            {
-                MainFlowSize = CurrentOverflow;
-            }
-            if(CurrentOverflow >= CurrentDims.*MainFlowMember)
+            MainFlowSize = std::max(MainFlowSize,CurrentOverflow);
+
+            if(CurrentOverflow > CurrentDims.*MainFlowMember)
             {
                 CurrentFlowIndex += 1;
                 CurrentOverflow = SubWindow.Dims.*MainFlowMember;
                 TotalOtherFlowSize += CurrentOtherFlowSize;
                 m_FlowSizes.push_back(CurrentOtherFlowSize);
-                CurrentOtherFlowSize = 0;
-                MainFlowSize = CurrentDims.*MainFlowMember;
+                CurrentOtherFlowSize = SubWindow.Dims.*OtherFlowDirection;
             }
-            bool WindowUpdated = SubWindow.Window->Updated();
-            ReturnValue = ReturnValue || WindowUpdated;
-            if(WindowUpdated || 
-                    (std::tie(SubWindow.FlowIndex,SubWindow.FlowPosition,SubWindow.OtherFlowPosition) 
-                     != std::tie(CurrentFlowIndex,CurrentOverflow,TotalOtherFlowSize)))
-            {
-                SubWindow.Redraw = true;
-            }
-            SubWindow.FlowIndex = CurrentFlowIndex;
+
+            SubWindow.FlowIndex = CurrentFlowIndex; 
             SubWindow.FlowPosition = CurrentOverflow;
             SubWindow.OtherFlowPosition = TotalOtherFlowSize;
         }
@@ -334,7 +273,7 @@ namespace MBTUI
         }
         TotalOtherFlowSize += CurrentOtherFlowSize;
         m_PreferedDims.*OtherFlowDirection = TotalOtherFlowSize;
-        m_PreferedDims.*MainFlowMember = MainFlowSize;
+        m_PreferedDims.*MainFlowMember = std::min(CurrentDims.*MainFlowMember,MainFlowSize);
         if(m_Border)
         {
             m_PreferedDims.Height += 2;
@@ -342,6 +281,47 @@ namespace MBTUI
         }
         m_PreferedDims.Height = std::min(m_PreferedDims.Height,m_Dims.Height);
         m_PreferedDims.Width = std::min(m_PreferedDims.Width,m_Dims.Width);
+
+
+        //Calculate the absolut offsets
+
+        MBCLI::Dimensions CurrentOffsets;
+        CurrentOffsets.Height = 0;
+        CurrentOffsets.Width = 0;
+        if(m_Border)
+        {
+            CurrentOffsets.Width += 1;
+            CurrentOffsets.Height += 1;
+        }
+        if(m_OverflowReversed)
+        {
+            CurrentOffsets.*OtherFlowDirection = m_PreferedDims.*OtherFlowDirection-m_FlowSizes[0];
+            if(m_Border)
+            {
+                CurrentOffsets.*OtherFlowDirection -= 1;
+            }
+        }
+        CurrentFlowIndex = 0;
+        for(auto& SubWindow : *this)
+        {
+            //bool ClearPreviou/s
+            if(SubWindow.FlowIndex != CurrentFlowIndex)
+            {
+                if(m_OverflowReversed)
+                {
+                    CurrentOffsets.*OtherFlowDirection -= m_FlowSizes[SubWindow.FlowIndex];
+                }
+                else
+                {
+                    CurrentOffsets.*OtherFlowDirection += m_FlowSizes[SubWindow.FlowIndex];
+                }
+                CurrentFlowIndex = SubWindow.FlowIndex;
+            }
+            auto OffsetDims = CurrentOffsets;
+            OffsetDims.*MainFlowMember += (SubWindow.FlowPosition - SubWindow.Dims.*MainFlowMember);
+            SubWindow.Offsets = OffsetDims;
+        }
+
         return ReturnValue;
     }
     void Stacker::SetFocus(bool IsFocused)
@@ -354,53 +334,39 @@ namespace MBTUI
     }
     void Stacker::WriteBuffer(MBCLI::BufferView View,bool Redraw) 
     {
+        bool AssignDims = m_AssignDims;
         if(View.GetDimensions() != m_Dims)
         {
             m_Dims = View.GetDimensions();
-            SetUpdated(true);
+            AssignDims = true;
         }
-        if(Updated())
+        if(m_ClearView)
         {
             View.Clear();   
-            Redraw = true;
+            m_ClearView = false;
+        }
+        m_AssignDims = false;
+        if(AssignDims || ChildUpdated())
+        {
             p_AssignDimensions();
         }
-        SetUpdated(false);
         p_UpdateBuffer(View,Redraw);
+        SetUpdated(false);
     }
     MBCLI::Dimensions Stacker::PreferedDimensions(MBCLI::Dimensions SuggestedDimensions)
     {
-        if(m_Dims.Height == -1 || m_Dims.Width == -1)
+        bool AssignDims = false;
+        if(m_Dims != SuggestedDimensions || ChildUpdated())
         {
-            m_Dims.Height = SuggestedDimensions.Height;
-            m_Dims.Width = SuggestedDimensions.Width;
-            m_Dims.Height = m_Dims.Height < 0 ? 0 : m_Dims.Height;
-            m_Dims.Width = m_Dims.Width < 0 ? 0 : m_Dims.Width;
-            SetUpdated(true);
+            AssignDims = true;
         }
-        if(Updated())
+        m_Dims = SuggestedDimensions;
+        m_Dims.Height = m_Dims.Height < 0 ? 0 : m_Dims.Height;
+        m_Dims.Width = m_Dims.Width < 0 ? 0 : m_Dims.Width;
+        if(AssignDims)
         {
-            p_AssignDimensions();   
+            p_AssignDimensions();
         }
-        //MBCLI::Dimensions ReturnValue = SuggestedDimensions;
-        //int MBCLI::Dimensions::* MainFlowMember = m_VerticalFlow ? &MBCLI::Dimensions::Height : &MBCLI::Dimensions::Width;;
-        //int MBCLI::Dimensions::* OtherFlowDirection = MainFlowMember == &MBCLI::Dimensions::Height ? &MBCLI::Dimensions::Width : &MBCLI::Dimensions::Height;
-        //ReturnValue.*OtherFlowDirection = 0;
-        //int TotalOtherFlowSize = 0;
-        //for(auto& Child : *this)
-        //{
-        //    auto ChildPreferedDims = Child.Window->PreferedDimensions(SuggestedDimensions);
-        //    ReturnValue.*MainFlowMember += ChildPreferedDims.*MainFlowMember;
-        //    ReturnValue.*OtherFlowDirection = std::max(ReturnValue.*OtherFlowDirection,ChildPreferedDims.*OtherFlowDirection);
-        //}
-        //if(ReturnValue.Height >= SuggestedDimensions.Height)
-        //{
-        //    ReturnValue.Height = SuggestedDimensions.Height;
-        //}
-        //if(ReturnValue.Width >= SuggestedDimensions.Width)
-        //{
-        //    ReturnValue.Width = SuggestedDimensions.Width;
-        //}
         return m_PreferedDims;
     }
 }
