@@ -19,6 +19,7 @@
                 "/MBTUI.cpp",
                 "/BufferWindow.cpp",
                 "/Layerer.cpp",
+                "/SizeSpecification.cpp",
                 "/Stacker.cpp"
             ],
             "TargetType":"Library"

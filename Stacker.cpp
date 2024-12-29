@@ -37,7 +37,7 @@ namespace MBTUI
         {
             if(m_VerticalFlow)
             {
-                AxisIncrease = m_Reversed ? 1 : -1;
+                AxisIncrease = m_Reversed ? -1 : 1;
             }
             else 
             {
@@ -48,7 +48,7 @@ namespace MBTUI
         {
             if(m_VerticalFlow)
             {
-                AxisIncrease = m_Reversed ? -1 : 1;
+                AxisIncrease = m_Reversed ? 1 : -1;
             }
             else 
             {
@@ -63,7 +63,7 @@ namespace MBTUI
             }
             else 
             {
-                AxisIncrease = m_Reversed ? -1 : 1;
+                AxisIncrease = m_Reversed ? 1 : -1;
             }
         }
         else if(Input.CharacterInput == "h")
@@ -74,7 +74,7 @@ namespace MBTUI
             }
             else 
             {
-                AxisIncrease = m_Reversed ? 1 : -1;
+                AxisIncrease = m_Reversed ? -1 : 1;
             }
         }
 
@@ -86,40 +86,30 @@ namespace MBTUI
         }
         else if(FlowIncrease != 0)
         {
+
             if(m_SelectedIndex < m_StackedWindows.size())
             {
                 auto& SelectedWindow = m_StackedWindows[m_SelectedIndex];
                 auto TargetFlow = SelectedWindow.FlowIndex + FlowIncrease;
-                auto SelectedFlowPosition = SelectedWindow.FlowPosition + (m_VerticalFlow ? SelectedWindow.Dims.Height : SelectedWindow.Dims.Width)/2;
-                if(FlowIncrease > 0)
+                auto SelectedFlowPosition = SelectedWindow.FlowPosition - (m_VerticalFlow ? SelectedWindow.Dims.Height : SelectedWindow.Dims.Width)/2;
+
+                auto FlowCompLower = [](SubWindow const& lhs,int rhs)
                 {
-                    int_least32_t NewIndex = m_StackedWindows.size()-1;
-                    for(size_t i = m_SelectedIndex;i < m_StackedWindows.size();i++)
-                    {
-                        auto const& CurrentWindow = m_StackedWindows[i];
-                        auto WindowFlowEnd = CurrentWindow.FlowPosition + (m_VerticalFlow ? CurrentWindow.Dims.Height : CurrentWindow.Dims.Width);
-                        if(SelectedFlowPosition <= WindowFlowEnd)
-                        {
-                            NewIndex = i;
-                            break;
-                        }
-                    }
-                    m_SelectedIndex = NewIndex;
-                }
-                else if(FlowIncrease < 0)
+                    return lhs.FlowIndex < rhs;
+                };
+                auto FlowCompHigher = [](int lhs,SubWindow const& rhs)
                 {
-                    int_least32_t NewIndex = 0;
-                    for(auto i = m_SelectedIndex;i > 0; i--)
-                    {
-                        auto const& CurrentWindow = m_StackedWindows[i];
-                        auto WindowFlowEnd = CurrentWindow.FlowPosition + (m_VerticalFlow ? CurrentWindow.Dims.Height : CurrentWindow.Dims.Width);
-                        if(SelectedFlowPosition <= WindowFlowEnd)
+                    return lhs < rhs.FlowIndex;
+                };
+                auto LowerBound = std::lower_bound(begin(),end(),TargetFlow,FlowCompLower);
+                auto HigherBound = std::upper_bound(begin(),end(),TargetFlow,FlowCompHigher);
+                auto Result = std::upper_bound(LowerBound,HigherBound,SelectedFlowPosition,[](int lhs,SubWindow const& rhs)
                         {
-                            NewIndex = i;
-                            break;
-                        }
-                    }
-                    m_SelectedIndex = NewIndex;
+                            return lhs < rhs.FlowPosition;
+                        });
+                if(Result != HigherBound)
+                {
+                    m_SelectedIndex = Result.GetOffset();
                 }
             }
         }
@@ -244,7 +234,7 @@ namespace MBTUI
 
         bool NewDims = m_LastDims != m_Dims;
         m_LastDims = m_Dims;
-        MBCLI::Dimensions CurrentDims = m_Dims;
+        MBCLI::Dimensions CurrentDims = m_SizeSpec.GetDims(m_Dims);
         if(m_Border)
         {
             CurrentDims.Width -= 2;
@@ -297,6 +287,19 @@ namespace MBTUI
         }
         m_PreferedDims.Height = std::min(m_PreferedDims.Height,m_Dims.Height);
         m_PreferedDims.Width = std::min(m_PreferedDims.Width,m_Dims.Width);
+
+        if(!m_SizeSpec.Empty())
+        {
+            auto SpecDims = m_SizeSpec.GetDims(m_Dims);
+            if(m_SizeSpec.HeightSpecified())
+            {
+                m_PreferedDims.Height = SpecDims.Height;
+            }
+            if(m_SizeSpec.WidthSpecified())
+            {
+                m_PreferedDims.Width = SpecDims.Width;   
+            }
+        }
 
 
         //Calculate the absolut offsets

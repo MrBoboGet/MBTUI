@@ -5,6 +5,8 @@
 #include <MBUtility/SmartPtr.h>
 
 #include <MBUtility/Iterator.h>
+
+#include "SizeSpecification.h"
 namespace MBTUI
 {
     class Stacker : public MBCLI::Window
@@ -22,6 +24,8 @@ namespace MBTUI
             int FlowPosition = -1;
             int OtherFlowPosition = -1;
         };
+        SizeSpecification m_SizeSpec;
+
         std::vector<SubWindow> m_StackedWindows;
         MBCLI::TerminalWindowBuffer m_Buffer;
 
@@ -58,7 +62,8 @@ namespace MBTUI
 
         bool p_AssignDimensions();
 
-        class ChildIterator : public MBUtility::Iterator_Base<ChildIterator,SubWindow>
+        class ChildIterator : public MBUtility::Bidir_Base<ChildIterator,SubWindow>
+                              , public MBUtility::RandomAccess_Base<ChildIterator,std::ptrdiff_t>
         {
             int m_Offset = 0;
             Stacker* m_AssociatedStacker;
@@ -72,6 +77,9 @@ namespace MBTUI
             }
 
         public:
+
+            typedef std::random_access_iterator_tag iterator_category;
+
             static ChildIterator begin(Stacker& Stacker)
             {
                 return ChildIterator(Stacker);
@@ -87,22 +95,47 @@ namespace MBTUI
                 {
                     ReturnValue.m_Offset = -1;
                 }
+
                 return ReturnValue;
             }
             SubWindow& GetRef()
             {
                 return m_AssociatedStacker->m_StackedWindows[m_Offset];
             }
-            void Increment()
+            SubWindow const& GetRef() const
+            {
+                return m_AssociatedStacker->m_StackedWindows[m_Offset];
+            }
+            int GetOffset()
+            {
+                return m_Offset;   
+            }
+            void Advance(int Increment)
+            {
+                if(!m_AssociatedStacker->m_Reversed)
+                {
+                    Increment *= -1;
+                }
+                m_Offset += Increment;
+            }
+            std::ptrdiff_t Diff(ChildIterator const& rhs) const
             {
                 if(m_AssociatedStacker->m_Reversed)
                 {
-                    m_Offset += 1;
+                    return rhs.m_Offset - m_Offset;
                 }
                 else
                 {
-                    m_Offset -= 1;   
+                    return m_Offset-rhs.m_Offset;   
                 }
+            }
+            void Increment()
+            {
+                Advance(1);
+            }
+            void Decrement()
+            {
+                Advance(-1);
             }
             bool IsEqual(ChildIterator const& OtherIterator) const
             {
@@ -128,6 +161,15 @@ namespace MBTUI
 
         void SetBorderColor(MBCLI::TerminalColor Color);
 
+        void SetSizeSpec(SizeSpecification NewSpec)
+        {
+            m_SizeSpec = NewSpec;   
+            SetUpdated(true);
+        }
+        SizeSpecification GetSizeSpec()
+        {
+            return m_SizeSpec;   
+        }
 
         void AddElement(MBUtility::SmartPtr<MBCLI::Window> NewWindow)
         {
