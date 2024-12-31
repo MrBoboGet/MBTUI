@@ -20,9 +20,13 @@ namespace MBTUI
             MBCLI::Dimensions Offsets;
             MBCLI::Dimensions PreviousOffsets;
 
+            bool Redraw = false;
+
+
             size_t FlowIndex = 0;
             int FlowPosition = -1;
             int OtherFlowPosition = -1;
+
         };
         SizeSpecification m_SizeSpec;
 
@@ -171,6 +175,31 @@ namespace MBTUI
             return m_SizeSpec;   
         }
 
+        auto SelectedWindowIndex() const
+        {
+            return m_SelectedIndex;
+        }
+        bool WindowSelected() const
+        {
+            bool ReturnValue = false;
+            if(m_SelectedIndex >= 0 && m_SelectedIndex < m_StackedWindows.size())
+            {
+                return true;
+            }
+            return ReturnValue;
+        }
+        MBUtility::SmartPtr<MBCLI::Window>& GetSelectedWindow()
+        {
+            if(WindowSelected())
+            {
+                return m_StackedWindows[m_SelectedIndex].Window;
+            }
+            throw std::runtime_error("No window selected");
+        }
+        size_t ChildCount() const
+        {
+            return m_StackedWindows.size();   
+        }
         void AddElement(MBUtility::SmartPtr<MBCLI::Window> NewWindow)
         {
             auto& NewSubwindow = m_StackedWindows.emplace_back();

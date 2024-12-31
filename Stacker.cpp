@@ -120,6 +120,20 @@ namespace MBTUI
     }
     void Stacker::p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw)
     {
+        for(auto& Window : *this)
+        {
+            if((Window.Offsets != Window.PreviousOffsets || Window.Dims != Window.PreviousDims) && 
+                    (Window.PreviousDims != MBCLI::Dimensions() && Window.PreviousOffsets != MBCLI::Dimensions()))
+            {
+                if(!Redraw)
+                {
+                    View.Clear(Window.PreviousOffsets.Height,Window.PreviousOffsets.Width,Window.PreviousDims.Width,Window.PreviousDims.Height);
+                    View.Clear(Window.Offsets.Height,Window.Offsets.Width,Window.Dims.Width,Window.Dims.Height);
+                }
+                Window.Redraw = true;
+            }
+        }
+
         if(m_Border && (!m_BorderDrawn || Redraw))
         {
             auto PreviousColor = View.GetWriteColor();
@@ -145,14 +159,7 @@ namespace MBTUI
         }
         for(auto& Window : *this)
         {
-            bool RedrawWindow = Redraw;
-            if((Window.Offsets != Window.PreviousOffsets || Window.Dims != Window.PreviousDims) && 
-                    (Window.PreviousDims != MBCLI::Dimensions() && Window.PreviousOffsets != MBCLI::Dimensions()))
-            {
-                View.Clear(Window.PreviousOffsets.Height,Window.PreviousOffsets.Width,Window.PreviousDims.Width,Window.PreviousDims.Height);
-                View.Clear(Window.Offsets.Height,Window.Offsets.Width,Window.Dims.Width,Window.Dims.Height);
-                RedrawWindow = true;
-            }
+            bool RedrawWindow = Redraw || Window.Redraw;
             if(RedrawWindow || Window.Window->Updated())
             {
                 MBCLI::Dimensions CurrentDrawOffset;
@@ -162,6 +169,7 @@ namespace MBTUI
             }
             Window.PreviousDims = Window.Dims;
             Window.PreviousOffsets = Window.Offsets;
+            Window.Redraw = false;
         }
     }
     void Stacker::SetFlowDirection(bool IsVertical)
