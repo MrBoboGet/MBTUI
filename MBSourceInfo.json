@@ -20,7 +20,8 @@
                 "/BufferWindow.cpp",
                 "/Layerer.cpp",
                 "/SizeSpecification.cpp",
-                "/Stacker.cpp"
+                "/Stacker.cpp",
+                "/Absolute.cpp"
             ],
             "TargetType":"Library"
         }
