@@ -120,6 +120,22 @@ namespace MBTUI
     }
     void Stacker::p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw)
     {
+        MBCLI::Dimensions DrawOffsets;
+        if(m_Border)
+        {
+            DrawOffsets.Height = 1;
+            DrawOffsets.Width = 1;
+        }
+        else
+        {
+            DrawOffsets.Height = 0;
+            DrawOffsets.Width = 0;
+        }
+        auto ClearView = View.SubView(0,0);
+        if(m_Border)
+        {
+            ClearView.ModifyAllowedArea(1,1);
+        }
         for(auto& Window : *this)
         {
             if((Window.Offsets != Window.PreviousOffsets || Window.Dims != Window.PreviousDims) && 
@@ -127,8 +143,14 @@ namespace MBTUI
             {
                 if(!Redraw)
                 {
-                    View.Clear(Window.PreviousOffsets.Height,Window.PreviousOffsets.Width,Window.PreviousDims.Width,Window.PreviousDims.Height);
-                    View.Clear(Window.Offsets.Height,Window.Offsets.Width,Window.Dims.Width,Window.Dims.Height);
+                    ClearView.Clear(Window.PreviousOffsets.Height,
+                               Window.PreviousOffsets.Width,
+                               Window.PreviousDims.Width,
+                               Window.PreviousDims.Height);
+                    ClearView.Clear(Window.Offsets.Height,
+                               Window.Offsets.Width,
+                               Window.Dims.Width,
+                               Window.Dims.Height);
                 }
                 Window.Redraw = true;
             }
@@ -146,26 +168,15 @@ namespace MBTUI
         {
             return;
         }
-        MBCLI::Dimensions DrawOffsets;
-        if(m_Border)
-        {
-            DrawOffsets.Height = 1;
-            DrawOffsets.Width = 1;
-        }
-        else
-        {
-            DrawOffsets.Height = 0;
-            DrawOffsets.Width = 0;
-        }
         for(auto& Window : *this)
         {
             bool RedrawWindow = Redraw || Window.Redraw;
             if(RedrawWindow || Window.Window->Updated())
             {
-                MBCLI::Dimensions CurrentDrawOffset;
-                CurrentDrawOffset.Height = std::max(DrawOffsets.Height-Window.Offsets.Height,0);
-                CurrentDrawOffset.Width = std::max(DrawOffsets.Width-Window.Offsets.Width,0);
-                Window.Window->WriteBuffer(View.SubView(Window.Offsets.Height,Window.Offsets.Width,Window.Dims,CurrentDrawOffset.Height,CurrentDrawOffset.Width),RedrawWindow);
+                //MBCLI::Dimensions CurrentDrawOffset;
+                //CurrentDrawOffset.Height = std::max(DrawOffsets.Height-Window.Offsets.Height,0);
+                //CurrentDrawOffset.Width = std::max(DrawOffsets.Width-Window.Offsets.Width,0);
+                Window.Window->WriteBuffer(View.SubView(Window.Offsets.Height,Window.Offsets.Width,Window.Dims,DrawOffsets.Height,DrawOffsets.Width),RedrawWindow);
             }
             Window.PreviousDims = Window.Dims;
             Window.PreviousOffsets = Window.Offsets;
@@ -265,10 +276,9 @@ namespace MBTUI
             }
 
             CurrentOverflow += SubWindow.Dims.*MainFlowMember;
-            CurrentOtherFlowSize = std::max(CurrentOtherFlowSize,SubWindow.Dims.*OtherFlowDirection);
             MainFlowSize = std::max(MainFlowSize,CurrentOverflow);
 
-            if(CurrentOverflow > CurrentDims.*MainFlowMember)
+            if(CurrentOverflow > CurrentDims.*MainFlowMember && CurrentOtherFlowSize != 0)
             {
                 CurrentFlowIndex += 1;
                 CurrentOverflow = SubWindow.Dims.*MainFlowMember;
@@ -276,6 +286,7 @@ namespace MBTUI
                 m_FlowSizes.push_back(CurrentOtherFlowSize);
                 CurrentOtherFlowSize = SubWindow.Dims.*OtherFlowDirection;
             }
+            CurrentOtherFlowSize = std::max(CurrentOtherFlowSize,SubWindow.Dims.*OtherFlowDirection);
 
             SubWindow.FlowIndex = CurrentFlowIndex; 
             SubWindow.FlowPosition = CurrentOverflow;
