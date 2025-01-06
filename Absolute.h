@@ -6,6 +6,18 @@
 
 namespace MBTUI
 {
+    enum class Orientation
+    {
+        Atop,
+        Left,
+        Right,
+        Above,
+        Center,
+        Below
+    };
+
+    Orientation StringToOrientation(std::string_view View);
+
     class Absolute : public MBCLI::Window
     {
         MBCLI::OverlayHandle m_Handle;
@@ -14,8 +26,14 @@ namespace MBTUI
         MBCLI::Dimensions m_SubDims;
 
         bool m_Visible = true;
-        bool m_Center = false;
         bool m_Redraw = false;
+        bool m_Relative = false;
+
+        Orientation m_Orientation = Orientation::Atop;
+        int  m_RowOffset = 0;
+        int  m_ColumnOffset = 0;
+
+        MBCLI::Dimensions p_GetOffsets(MBCLI::BufferView& View);
     public:
         void SetSubwindow(MBUtility::SmartPtr<MBCLI::Window> Child)
         {
@@ -25,7 +43,16 @@ namespace MBTUI
         }
 
         void SetVisible(bool Visible);
-        void SetCenter(bool Centered);
+        //void SetCenter(bool Centered);
+        void SetRelative(bool Relative);
+        void SetOffsets(int RowOffset,int ColumnOffset);
+
+        MBCLI::Dimensions GetOffsets() const
+        {
+            return MBCLI::Dimensions(m_ColumnOffset,m_RowOffset);
+        }
+
+        void SetOrientation(Orientation NewOrientation);
 
         virtual void HandleInput(MBCLI::ConsoleInput const& Input);
         virtual MBCLI::Dimensions PreferedDimensions(MBCLI::Dimensions SuggestedDimensions);

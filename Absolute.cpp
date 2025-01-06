@@ -3,6 +3,33 @@
 
 namespace MBTUI
 {
+    Orientation StringToOrientation(std::string_view View)
+    {
+        Orientation Result = Orientation::Atop;
+        if(View == "center")
+        {
+            Result = Orientation::Center;
+        }
+        else if(View == "left")
+        {
+            Result = Orientation::Left;
+        }
+        else if(View == "right")
+        {
+            Result = Orientation::Right;   
+        }
+        else if(View == "above")
+        {
+            Result = Orientation::Above;
+        }
+        else if(View == "below")
+        {
+            Result = Orientation::Below;
+        }
+        return Result;
+    }
+
+    //
        
     void Absolute::HandleInput(MBCLI::ConsoleInput const& Input) 
     {
@@ -39,15 +66,81 @@ namespace MBTUI
         }
         m_Visible = Visible;
     }
-    void Absolute::SetCenter(bool Centered)
+    //void Absolute::SetCenter(bool Centered)
+    //{
+    //    if(m_Center != Centered)
+    //    {
+    //        SetUpdated(true);   
+    //        m_Redraw = true;
+    //    }
+    //    m_Center = Centered;
+
+    //}
+    void Absolute::SetRelative(bool Relative)
     {
-        if(m_Center != Centered)
+        if(m_Relative != Relative)
         {
             SetUpdated(true);   
             m_Redraw = true;
         }
-        m_Center = Centered;
+        m_Relative = Relative;
+    }
+    void Absolute::SetOffsets(int RowOffset,int ColumnOffset)
+    {
+        if(std::tie(m_RowOffset,m_ColumnOffset) != std::tie(RowOffset,ColumnOffset))
+        {
+            SetUpdated(true);
+            m_Redraw = true;
+        }
+        m_RowOffset = RowOffset;
+        m_ColumnOffset = ColumnOffset;
+    }
+    void Absolute::SetOrientation(Orientation NewOrientation)
+    {
+        if(m_Orientation != NewOrientation)
+        {
+            SetUpdated(true);
+            m_Redraw = true;
+        }
+        m_Orientation = NewOrientation;
+    }
+    MBCLI::Dimensions Absolute::p_GetOffsets(MBCLI::BufferView& View)
+    {
+        MBCLI::Dimensions ReturnValue;
+        ReturnValue.Height = 0;
+        ReturnValue.Width = 0;
 
+        auto ContainerDims = !m_Relative ?  View.GetScreenDims() : View.GetDimensions();
+        
+        if(m_Orientation == Orientation::Center)
+        {
+            auto AbsoluteDims =  ContainerDims;
+            ReturnValue.Height = (AbsoluteDims.Height - m_SubDims.Height)/2;
+            ReturnValue.Width = (AbsoluteDims.Width - m_SubDims.Width)/2;
+        }
+        else if(m_Orientation == Orientation::Atop)
+        {
+            
+        }
+        else if(m_Orientation == Orientation::Left)
+        {
+            ReturnValue.Width -= m_SubDims.Width;
+        }
+        else if(m_Orientation == Orientation::Right)
+        {
+            ReturnValue.Width = ContainerDims.Width;
+        }
+        else if(m_Orientation == Orientation::Above)
+        {
+            ReturnValue.Height = ContainerDims.Height;
+        }
+        else if(m_Orientation == Orientation::Below)
+        {
+            ReturnValue.Height = -m_SubDims.Height;
+        }
+        ReturnValue.Height += m_RowOffset;
+        ReturnValue.Width += m_ColumnOffset;
+        return ReturnValue;
     }
     void Absolute::WriteBuffer(MBCLI::BufferView View,bool Redraw)
     {
@@ -66,18 +159,28 @@ namespace MBTUI
             {
                 if(m_SubWindow->Updated() || m_SubDims == MBCLI::Dimensions())
                 {
-                    m_SubDims = m_SubWindow->PreferedDimensions(View.GetDimensions());
+                    if(m_Relative)
+                    {
+                        m_SubDims = m_SubWindow->PreferedDimensions(View.GetDimensions());
+                    }
+                    else
+                    {
+                        m_SubDims = m_SubWindow->PreferedDimensions(View.GetScreenDims());
+                    }
                 }
                 MBCLI::Dimensions Dims;
                 Dims.Width = 0;
                 Dims.Height = 0;
-                if(m_Center)
+                Dims = p_GetOffsets(View);
+                
+                if(m_Relative)
                 {
-                    auto AbsoluteDims = View.GetScreenDims();
-                    Dims.Height = (AbsoluteDims.Height - m_SubDims.Height)/2;
-                    Dims.Width = (AbsoluteDims.Width - m_SubDims.Width)/2;
+                    m_SubWindow->WriteBuffer(View.RelativeOverlay(m_Handle,Dims.Height,Dims.Width,m_SubDims),Redraw||m_Redraw);
                 }
-                m_SubWindow->WriteBuffer(View.RelativeOverlay(m_Handle,Dims.Height,Dims.Width,m_SubDims),Redraw||m_Redraw);
+                else
+                {
+                    m_SubWindow->WriteBuffer(View.AbsoluteOverlay(m_Handle,Dims.Height,Dims.Width,m_SubDims),Redraw||m_Redraw);
+                }
             }
             m_Redraw = false;
             SetUpdated(false);   

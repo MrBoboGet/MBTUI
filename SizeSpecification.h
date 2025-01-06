@@ -20,6 +20,7 @@ namespace MBTUI
 
         bool Empty() const;
         MBCLI::Dimensions GetDims(MBCLI::Dimensions ContainerSize) const;
+        MBCLI::Dimensions ModifyDims(MBCLI::Dimensions OriginalDims,MBCLI::Dimensions ContainerSize) const;
 
         void SetWidth(int CharacterCount);
         void SetWidth(Percent PercentSize);

@@ -14,6 +14,20 @@ namespace MBTUI
         ReturnValue.Width = p_GetSize(m_WidthSpec,ReturnValue.Width);
         return ReturnValue;
     }
+    MBCLI::Dimensions SizeSpecification::ModifyDims(MBCLI::Dimensions OriginalDims,MBCLI::Dimensions ContainerSize) const
+    {
+        MBCLI::Dimensions ReturnValue = OriginalDims;
+        auto SpecificationDims = GetDims(ContainerSize);
+        if(HeightSpecified())
+        {
+            ReturnValue.Height = SpecificationDims.Height;
+        }
+        if(WidthSpecified())
+        {
+            ReturnValue.Width = SpecificationDims.Width;
+        }
+        return ReturnValue;
+    }
     void SizeSpecification::SetWidth(int CharacterCount)
     {
         m_WidthSpec = CharacterCount;

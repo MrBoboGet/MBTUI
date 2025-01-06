@@ -21,6 +21,7 @@
                 "/Layerer.cpp",
                 "/SizeSpecification.cpp",
                 "/Stacker.cpp",
+                "/Text.cpp",
                 "/Absolute.cpp"
             ],
             "TargetType":"Library"
