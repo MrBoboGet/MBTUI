@@ -172,15 +172,29 @@ namespace MBTUI
                 Dims.Width = 0;
                 Dims.Height = 0;
                 Dims = p_GetOffsets(View);
-                
+
+                if(std::tie(m_PreviousWriteDims,m_PreviousWriteOffsets) != std::tie(m_SubDims,Dims))
+                {
+                    m_Redraw = true;
+                }
                 if(m_Relative)
                 {
+                    if(m_Redraw)
+                    {
+                        View.RelativeOverlay(m_Handle,Dims.Height,Dims.Width,m_SubDims).Clear();
+                    }
                     m_SubWindow->WriteBuffer(View.RelativeOverlay(m_Handle,Dims.Height,Dims.Width,m_SubDims),Redraw||m_Redraw);
                 }
                 else
                 {
+                    if(m_Redraw)
+                    {
+                        View.AbsoluteOverlay(m_Handle,Dims.Height,Dims.Width,m_SubDims).Clear();
+                    }
                     m_SubWindow->WriteBuffer(View.AbsoluteOverlay(m_Handle,Dims.Height,Dims.Width,m_SubDims),Redraw||m_Redraw);
                 }
+                m_PreviousWriteDims = m_SubDims;
+                m_PreviousWriteDims = Dims;
             }
             m_Redraw = false;
             SetUpdated(false);   

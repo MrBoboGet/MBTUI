@@ -22,6 +22,7 @@
                 "/SizeSpecification.cpp",
                 "/Stacker.cpp",
                 "/Text.cpp",
+                "/Hider.cpp",
                 "/Absolute.cpp"
             ],
             "TargetType":"Library"

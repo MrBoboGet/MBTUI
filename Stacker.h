@@ -188,6 +188,7 @@ namespace MBTUI
             }
             return ReturnValue;
         }
+
         MBUtility::SmartPtr<MBCLI::Window>& GetSelectedWindow()
         {
             if(WindowSelected())
@@ -196,6 +197,15 @@ namespace MBTUI
             }
             throw std::runtime_error("No window selected");
         }
+        MBUtility::SmartPtr<MBCLI::Window>& First()
+        {
+            if(m_StackedWindows.size() != 0)
+            {
+                return m_StackedWindows[0].Window;
+            }
+            throw std::runtime_error("Error getting first child: stacker has no children");
+        }
+
         size_t ChildCount() const
         {
             return m_StackedWindows.size();   

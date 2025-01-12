@@ -31,13 +31,15 @@ namespace MBTUI
 
         std::vector<CompletionFuncType> m_CompletionFuncs;
         MBUtility::MOFunction<void(std::string const& Line)> m_EnterFunc;
-        void p_SetLine(std::string const& Data);
+        void p_SetLine(std::string_view const& Data);
 
     public:
         void AddCompletionFunc(CompletionFuncType Func);
         void SetOnEnterFunc(MBUtility::MOFunction<void(std::string const& Line)> EnterFunc);
         std::string GetLineString();
         void Reset();
+
+        void SetText(std::string_view Content);
         std::vector<MBUnicode::GraphemeCluster> GetLineBuffer()
         {
             return m_LineBuffer;   

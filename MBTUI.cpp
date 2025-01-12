@@ -127,6 +127,11 @@ namespace MBTUI
     {
         m_EnterFunc = std::move(EnterFunc);   
     }
+    void REPL::SetText(std::string_view Content)
+    {
+        p_SetLine(Content);
+        SetUpdated(true);
+    }
     std::string REPL::GetLineString()
     {
         std::string ReturnValue;
@@ -141,7 +146,7 @@ namespace MBTUI
         m_CursorPosition = 0;
         m_LineBuffer.clear();
     }
-    void REPL::p_SetLine(std::string const& Data)
+    void REPL::p_SetLine(std::string_view const& Data)
     {
         m_LineBuffer.clear();
         MBUnicode::GraphemeCluster::ParseGraphemeClusters(m_LineBuffer, Data.data(), Data.size(),0);

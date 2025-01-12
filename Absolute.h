@@ -23,7 +23,12 @@ namespace MBTUI
         MBCLI::OverlayHandle m_Handle;
 
         MBUtility::SmartPtr<MBCLI::Window> m_SubWindow;
+        
         MBCLI::Dimensions m_SubDims;
+
+
+        MBCLI::Dimensions m_PreviousWriteOffsets;
+        MBCLI::Dimensions m_PreviousWriteDims;
 
         bool m_Visible = true;
         bool m_Redraw = false;
