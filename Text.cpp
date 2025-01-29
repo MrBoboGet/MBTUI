@@ -49,6 +49,14 @@ namespace MBTUI
             m_Color = Color;
         }
     }
+    void Text::SetBGColor(MBCLI::TerminalColor Color)
+    {
+        if(m_BGColor != Color)
+        {
+            SetUpdated(true);   
+            m_BGColor = Color;
+        }
+    }
     void Text::SetText(std::string Content)
     {
         std::swap(m_Content,Content);
@@ -65,6 +73,7 @@ namespace MBTUI
     void Text::WriteBuffer(MBCLI::BufferView View,bool Redraw)
     {
         View.SetWriteColor(m_Focus ? m_HighlightColor : m_Color);
+        View.SetBGColor(m_BGColor);
         View.WriteCharacters(0,0,m_Content);
         SetUpdated(false);
     }

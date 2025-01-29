@@ -9,6 +9,7 @@ namespace MBTUI
         SizeSpecification m_SizeSpec;
 
         MBCLI::TerminalColor m_Color = MBCLI::ANSITerminalColor::BrightWhite;
+        MBCLI::TerminalColor m_BGColor = MBCLI::ANSITerminalColor::Black;
         MBCLI::TerminalColor m_HighlightColor = MBCLI::ANSITerminalColor::BrightWhite;
 
         bool m_Focus = false;
@@ -19,6 +20,7 @@ namespace MBTUI
 
         void SetText(std::string Content);
         void SetColor(MBCLI::TerminalColor Color);
+        void SetBGColor(MBCLI::TerminalColor Color);
         void SetHighlightColor(MBCLI::TerminalColor Color);
 
         virtual void HandleInput(MBCLI::ConsoleInput const& Input);
