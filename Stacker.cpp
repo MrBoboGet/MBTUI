@@ -268,6 +268,8 @@ namespace MBTUI
             if(NewDims || SubWindow.Window->Updated())
             {
                 SubWindow.Dims = SubWindow.Window->PreferedDimensions(CurrentDims);
+                SubWindow.Dims.Height = std::min(SubWindow.Dims.Height,CurrentDims.Height);
+                SubWindow.Dims.Width = std::min(SubWindow.Dims.Width,CurrentDims.Width);
             }
             SubWindow.Dims.*MainFlowMember = SubWindow.Dims.*MainFlowMember < 0 ? 1 : SubWindow.Dims.*MainFlowMember;
             if(m_Overflow)
