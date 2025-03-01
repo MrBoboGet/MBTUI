@@ -7,12 +7,22 @@ namespace MBTUI
     {
         std::string m_Content;
         SizeSpecification m_SizeSpec;
+        MBCLI::Dimensions m_Dims;
+        MBCLI::Dimensions m_LastWriteDims;
 
         MBCLI::TerminalColor m_Color = MBCLI::ANSITerminalColor::BrightWhite;
         MBCLI::TerminalColor m_BGColor = MBCLI::ANSITerminalColor::Black;
         MBCLI::TerminalColor m_HighlightColor = MBCLI::ANSITerminalColor::BrightWhite;
 
         bool m_Focus = false;
+        bool m_Multiline = false;
+        bool m_Recalculate = false;
+
+        std::vector<std::pair<int_least32_t,int_least32_t>> m_LineOffsets;
+
+        bool p_IsWord(unsigned char const* Begin,unsigned char const* End) const;
+        std::vector<std::pair<int_least32_t,int_least32_t>> p_Tokenize(MBCLI::Dimensions Dims,std::string_view Content) const;
+
     public: 
         std::string_view GetContent() const;
         SizeSpecification GetSizeSpec() const;
@@ -22,6 +32,7 @@ namespace MBTUI
         void SetColor(MBCLI::TerminalColor Color);
         void SetBGColor(MBCLI::TerminalColor Color);
         void SetHighlightColor(MBCLI::TerminalColor Color);
+        void SetMultiline(bool Multiline);
 
         virtual void HandleInput(MBCLI::ConsoleInput const& Input);
         virtual MBCLI::Dimensions PreferedDimensions(MBCLI::Dimensions SuggestedDimensions);
