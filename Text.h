@@ -34,7 +34,7 @@ namespace MBTUI
         void SetHighlightColor(MBCLI::TerminalColor Color);
         void SetMultiline(bool Multiline);
 
-        virtual void HandleInput(MBCLI::ConsoleInput const& Input);
+        virtual bool HandleInput(MBCLI::ConsoleInput const& Input);
         virtual MBCLI::Dimensions PreferedDimensions(MBCLI::Dimensions SuggestedDimensions);
         virtual void SetFocus(bool IsFocused);
         virtual MBCLI::CursorInfo GetCursorInfo();

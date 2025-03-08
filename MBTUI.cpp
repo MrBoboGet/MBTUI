@@ -152,7 +152,7 @@ namespace MBTUI
         MBUnicode::GraphemeCluster::ParseGraphemeClusters(m_LineBuffer, Data.data(), Data.size(),0);
         m_CursorPosition = m_LineBuffer.size();
     }
-    void REPL::HandleInput(MBCLI::ConsoleInput const& Input) 
+    bool REPL::HandleInput(MBCLI::ConsoleInput const& Input) 
     {
         SetUpdated(true);
         if (!Input.CharacterInput.IsEmpty())
@@ -170,7 +170,7 @@ namespace MBTUI
                 {
                     m_EnterFunc(CurrentLine);
                 }
-                return;
+                return true;
             }
             else if(Input.CharacterInput == '\t')
             {
@@ -216,7 +216,7 @@ namespace MBTUI
                 {
                     if(m_LineBuffer.size() == 0)
                     {
-                        return;
+                        return true;
                     }
                     m_LineBuffer.erase(m_LineBuffer.begin() + m_CursorPosition - 1);
                     m_CursorPosition -= 1;
@@ -263,6 +263,7 @@ namespace MBTUI
                 }
             }
         }
+        return true;
     }
     void REPL::SetFocus(bool IsFocused)
     {

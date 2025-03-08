@@ -31,12 +31,13 @@ namespace MBTUI
 
     //
        
-    void Absolute::HandleInput(MBCLI::ConsoleInput const& Input) 
+    bool Absolute::HandleInput(MBCLI::ConsoleInput const& Input) 
     {
         if(m_SubWindow != nullptr)
         {
-            m_SubWindow->HandleInput(Input);
+            return m_SubWindow->HandleInput(Input);
         }
+        return false;
     }
     MBCLI::Dimensions Absolute::PreferedDimensions(MBCLI::Dimensions SuggestedDimensions)
     {

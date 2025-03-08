@@ -5,6 +5,7 @@
     (attributes (dict))
     (children (list))
     (state-changed false)
+    (interaction-stack null)
 
     (set-children (children)
         (setl :children this children)
@@ -22,6 +23,9 @@
     (set-focus ()
         false
     )
+    (set-focus (is-focused)
+        false
+    )
     (get-cursor-info ()
         false
     )
@@ -32,7 +36,16 @@
         (setl :state-changed this true)
     )
 )
+(setl current-interaction-stack (dynamic null))
 
+(defmethod push ((this TMLElement) sub-element)
+    (if (not (eq current-interaction-stack null))
+        (append current-interaction-stack sub-element)
+     else
+        (set :interaction-stack this (list))
+        (append :interaction-stack this sub-element)
+    )
+)
 
 (defclass Attribute ()
     (name "")

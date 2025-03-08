@@ -2,9 +2,9 @@
 
 namespace MBTUI
 {
-    void BufferWindow::HandleInput(MBCLI::ConsoleInput const& Input) 
+    bool BufferWindow::HandleInput(MBCLI::ConsoleInput const& Input) 
     {
-        //
+        return false;
     }
     void BufferWindow::SetFocus(bool IsFocused) 
     {

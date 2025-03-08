@@ -10,12 +10,13 @@ namespace MBTUI
         }
         m_Visible = Visible;
     }
-    void Hider::HandleInput(MBCLI::ConsoleInput const& Input)
+    bool Hider::HandleInput(MBCLI::ConsoleInput const& Input)
     {
         if(m_Visible)
         {
-            m_SubWindow->HandleInput(Input);
+            return m_SubWindow->HandleInput(Input);
         }
+        return false;
     }
     MBCLI::Dimensions Hider::PreferedDimensions(MBCLI::Dimensions SuggestedDimensions)
     {

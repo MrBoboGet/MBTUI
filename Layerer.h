@@ -30,7 +30,7 @@ namespace MBTUI
 
 
         void PopLayer();
-        virtual void HandleInput(MBCLI::ConsoleInput const& Input) override;
+        virtual bool HandleInput(MBCLI::ConsoleInput const& Input) override;
         virtual void SetFocus(bool IsFocused) override;
         virtual MBCLI::CursorInfo GetCursorInfo() override;
         virtual void WriteBuffer(MBCLI::BufferView View,bool Redraw) override;

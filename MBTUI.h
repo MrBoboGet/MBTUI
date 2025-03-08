@@ -45,7 +45,7 @@ namespace MBTUI
             return m_LineBuffer;   
         }
         void SetMaxDims(MBCLI::Dimensions Dims);
-        virtual void HandleInput(MBCLI::ConsoleInput const& Input) override;
+        virtual bool HandleInput(MBCLI::ConsoleInput const& Input) override;
         virtual void SetFocus(bool IsFocused) override;
         virtual MBCLI::CursorInfo GetCursorInfo() override;
         virtual MBCLI::Dimensions PreferedDimensions(MBCLI::Dimensions SuggestedDimensions) override;

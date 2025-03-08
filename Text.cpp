@@ -37,6 +37,11 @@ namespace MBTUI
             if(Size == 1 && *NextChar == '\n' || (Size == 2 && NextChar[0] == '\r' && NextChar[1] == '\n' ))
             {
                 ReturnValue.push_back({LineBegin,CurrentCharOffset});
+                //Special case, as newline being the last character wouldnt be different from having no line break adding a new row
+                if(GraphemeEnd == End && m_Multiline)
+                {
+                    ReturnValue.push_back({CurrentCharEnd,CurrentCharEnd});
+                }
                 WordBegin = -1;
                 LineBegin = CurrentCharEnd;
                 CurrentLineCharacters = 0;
@@ -90,7 +95,10 @@ namespace MBTUI
         }
         if(LineBegin < Content.size())
         {
-            ReturnValue.push_back({LineBegin,Content.size()});
+            if(m_Multiline || ReturnValue.size() == 0)
+            {
+                ReturnValue.push_back({LineBegin,Content.size()});
+            }
         }
 
         return ReturnValue;
@@ -108,9 +116,18 @@ namespace MBTUI
         m_SizeSpec = NewSpec;
     }
 
-    void Text::HandleInput(MBCLI::ConsoleInput const& Input)
+    bool Text::HandleInput(MBCLI::ConsoleInput const& Input)
     {
-           
+        if(Input.SpecialInput == MBCLI::SpecialKey::Esc)
+        {
+            return false;   
+        }
+        m_Content += Input.CharacterInput.GetView();
+        m_Recalculate = true;
+        SetUpdated(true);
+
+
+        return true;
     }
     MBCLI::Dimensions Text::PreferedDimensions(MBCLI::Dimensions SuggestedDimensions)
     {

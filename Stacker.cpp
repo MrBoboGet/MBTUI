@@ -2,10 +2,41 @@
 
 namespace MBTUI
 {
-    void Stacker::HandleInput(MBCLI::ConsoleInput const& Input) 
+    bool Stacker::HandleInput(MBCLI::ConsoleInput const& Input) 
     {
         //navigation
         //
+        
+        
+        if(m_SelectedIndex >= 0 && m_SelectedIndex < m_StackedWindows.size())
+        {
+            if(m_SubWindowActive)
+            {
+                auto Result = m_StackedWindows[m_SelectedIndex].Window->HandleInput(Input);
+                if(!Result)
+                {
+                    m_SubWindowActive = false;
+                }
+                return true;
+            }
+            else
+            {
+                if(Input.SpecialInput == MBCLI::SpecialKey::Esc)
+                {
+                    return false;
+                }
+            }
+        }
+
+        int AxisIncrease = 0;
+        int FlowIncrease = 0;
+
+        if(Input.CharacterInput == "i")
+        {
+            m_SubWindowActive = true;   
+            return true;
+        }
+
         if(m_SelectedIndex != -1)
         {
             try
@@ -27,12 +58,12 @@ namespace MBTUI
                 m_SelectedIndex = 0;
                 m_StackedWindows[m_SelectedIndex].Window->SetFocus(true);
             }
-            return;
+            if(Input.SpecialInput == MBCLI::SpecialKey::Esc)
+            {
+                return false;
+            }
+            return true;
         }
-
-        int AxisIncrease = 0;
-        int FlowIncrease = 0;
-
         if(Input.CharacterInput == "j")
         {
             if(m_VerticalFlow)
@@ -117,6 +148,7 @@ namespace MBTUI
         {
             m_StackedWindows[m_SelectedIndex].Window->SetFocus(true);
         }
+        return true;
     }
     void Stacker::p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw)
     {
@@ -370,6 +402,13 @@ namespace MBTUI
     }
     MBCLI::CursorInfo Stacker::GetCursorInfo() 
     {
+        if(m_SubWindowActive)
+        {
+            if(m_SelectedIndex >= 0 && m_SelectedIndex < m_StackedWindows.size())
+            {
+                return m_StackedWindows[m_SelectedIndex].Window->GetCursorInfo();
+            }
+        }
         return MBCLI::CursorInfo();
     }
     void Stacker::WriteBuffer(MBCLI::BufferView View,bool Redraw) 

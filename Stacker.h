@@ -58,6 +58,9 @@ namespace MBTUI
         bool m_ClearView = false;
         bool m_AssignDims = false;
 
+
+        bool m_SubWindowActive = false;
+
         std::vector<int> m_FlowSizes;
 
         //MBCLI::ClearCache m_ClearCache;
@@ -230,7 +233,7 @@ namespace MBTUI
             m_ClearView = true;
             SetUpdated(true);
         }
-        virtual void HandleInput(MBCLI::ConsoleInput const& Input) override;
+        virtual bool HandleInput(MBCLI::ConsoleInput const& Input) override;
         virtual void SetFocus(bool IsFocused)  override;
         virtual MBCLI::CursorInfo GetCursorInfo() override;
         virtual void WriteBuffer(MBCLI::BufferView View,bool Redraw) override;

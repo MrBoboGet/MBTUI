@@ -23,12 +23,13 @@ namespace MBTUI
             m_Layers[m_ActiveLayerIndex].Window->SetFocus(true);   
         }
     }
-    void Layerer::HandleInput(MBCLI::ConsoleInput const& Input)
+    bool Layerer::HandleInput(MBCLI::ConsoleInput const& Input)
     {
         if(m_ActiveLayerIndex < m_Layers.size())
         {
-            m_Layers[m_ActiveLayerIndex].Window->HandleInput(Input);   
+            return m_Layers[m_ActiveLayerIndex].Window->HandleInput(Input);   
         }
+        return false;
     }
     void Layerer::SetFocus(bool IsFocused) 
     {
