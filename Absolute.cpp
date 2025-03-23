@@ -64,6 +64,12 @@ namespace MBTUI
         {
             SetUpdated(true);   
             m_Redraw = true;
+            if(!m_Handle.Empty() && !Visible)
+            {
+                //View.RemoveOverlay(m_Handle);
+                m_Handle.Remove();
+                m_Handle = MBCLI::OverlayHandle();
+            }
         }
         m_Visible = Visible;
     }
@@ -162,7 +168,7 @@ namespace MBTUI
                 {
                     if(m_Relative)
                     {
-                        m_SubDims = m_SubWindow->PreferedDimensions(View.GetDimensions());
+                        m_SubDims = m_SubWindow->PreferedDimensions(View.GetScreenDims());
                     }
                     else
                     {
@@ -195,7 +201,7 @@ namespace MBTUI
                     m_SubWindow->WriteBuffer(View.AbsoluteOverlay(m_Handle,Dims.Height,Dims.Width,m_SubDims),Redraw||m_Redraw);
                 }
                 m_PreviousWriteDims = m_SubDims;
-                m_PreviousWriteDims = Dims;
+                m_PreviousWriteOffsets = Dims;
             }
             m_Redraw = false;
             SetUpdated(false);   

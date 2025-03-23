@@ -165,6 +165,13 @@ namespace MBTUI
     }
     MBCLI::CursorInfo Text::GetCursorInfo()
     {
+        if(m_Focus)
+        {
+            MBCLI::CursorInfo ReturnValue;
+            ReturnValue.Hidden = false;
+            ReturnValue.Position.ColumnIndex = m_Content.size();
+            ReturnValue.Position.RowIndex = 0;
+        }
         return MBCLI::CursorInfo();
     }
     void Text::SetColor(MBCLI::TerminalColor Color)

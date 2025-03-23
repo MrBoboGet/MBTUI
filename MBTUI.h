@@ -20,8 +20,9 @@ namespace MBTUI
         //history stuff
         std::vector<std::string> m_History;
         size_t m_CurrentCommandIndex = -1;
-
         int m_CursorPosition = 0;
+        uint_least32_t m_PreviousWriteSize = 0;
+
         std::vector<MBUnicode::GraphemeCluster> m_LineBuffer;
         MBCLI::Dimensions m_Dims;
         MBCLI::Dimensions m_MaxDims;

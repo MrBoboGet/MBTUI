@@ -16,6 +16,10 @@ namespace MBTUI
                 if(!Result)
                 {
                     m_SubWindowActive = false;
+                    //if(m_SelectedIndex != -1 && m_SelectedIndex < m_StackedWindows.size())
+                    //{
+                    //    m_StackedWindows[m_SelectedIndex].Window->SetFocus(false);
+                    //}
                 }
                 return true;
             }
@@ -34,6 +38,10 @@ namespace MBTUI
         if(Input.CharacterInput == "i")
         {
             m_SubWindowActive = true;   
+            //if(m_SelectedIndex != -1 && m_SelectedIndex < m_StackedWindows.size())
+            //{
+            //    m_StackedWindows[m_SelectedIndex].Window->SetFocus(true);
+            //}
             return true;
         }
 
