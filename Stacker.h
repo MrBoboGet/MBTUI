@@ -225,12 +225,14 @@ namespace MBTUI
         {
             m_StackedWindows.clear();
             m_ClearView = true;
+            m_BorderDrawn = false;
             SetUpdated(true);
         }
         void SetReversed(bool Reversed)
         {
             m_Reversed = true;
             m_ClearView = true;
+            m_BorderDrawn = false;
             SetUpdated(true);
         }
         virtual bool HandleInput(MBCLI::ConsoleInput const& Input) override;

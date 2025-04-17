@@ -7,6 +7,7 @@ namespace MBTUI
         {
             m_Layers[m_ActiveLayerIndex].Window->SetFocus(false);
         }
+        SetChild(*Window);
         Layer& NewLayer = m_Layers.emplace_back();
         NewLayer.Window = std::move(Window);
         NewLayer.Window->SetFocus(true);

@@ -204,6 +204,14 @@ namespace MBTUI
             m_HighlightColor = Color;
         }
     }
+    void Text::SetHighlightBGColor(MBCLI::TerminalColor Color)
+    {
+        if(m_HighlightBGColor != Color)
+        {
+            SetUpdated(true);
+            m_HighlightBGColor = Color;
+        }
+    }
     void Text::SetMultiline(bool Multiline)
     {
         if(m_Multiline != Multiline)
@@ -221,7 +229,7 @@ namespace MBTUI
             m_Recalculate = false;
         }
         View.SetWriteColor(m_Focus ? m_HighlightColor : m_Color);
-        View.SetBGColor(m_BGColor);
+        View.SetBGColor(m_Focus ? m_HighlightBGColor : m_BGColor);
 
         int LineOffset = 0;
         for(auto It = m_LineOffsets.rbegin();It != m_LineOffsets.rend();++It)

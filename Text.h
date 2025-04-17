@@ -13,6 +13,7 @@ namespace MBTUI
         MBCLI::TerminalColor m_Color = MBCLI::ANSITerminalColor::BrightWhite;
         MBCLI::TerminalColor m_BGColor = MBCLI::ANSITerminalColor::Black;
         MBCLI::TerminalColor m_HighlightColor = MBCLI::ANSITerminalColor::BrightWhite;
+        MBCLI::TerminalColor m_HighlightBGColor = MBCLI::ANSITerminalColor::BrightWhite;
 
         bool m_Focus = false;
         bool m_Multiline = false;
@@ -32,6 +33,7 @@ namespace MBTUI
         void SetColor(MBCLI::TerminalColor Color);
         void SetBGColor(MBCLI::TerminalColor Color);
         void SetHighlightColor(MBCLI::TerminalColor Color);
+        void SetHighlightBGColor(MBCLI::TerminalColor Color);
         void SetMultiline(bool Multiline);
 
         virtual bool HandleInput(MBCLI::ConsoleInput const& Input);
