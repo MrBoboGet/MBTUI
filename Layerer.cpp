@@ -12,11 +12,13 @@ namespace MBTUI
         NewLayer.Window = std::move(Window);
         NewLayer.Window->SetFocus(true);
         m_ActiveLayerIndex = m_Layers.size()-1;
+        m_Redraw = true;
         SetUpdated(true);
     }
     void Layerer::PopLayer()
     {
         SetUpdated(true);
+        m_Redraw = true;
         m_Layers.pop_back();
         m_ActiveLayerIndex = m_Layers.size()-1;
         if(m_ActiveLayerIndex < m_Layers.size())
@@ -50,9 +52,10 @@ namespace MBTUI
     void  Layerer::WriteBuffer(MBCLI::BufferView View,bool Redraw) 
     {
         //MBCLI::TerminalWindowBuffer ReturnValue(m_Dims.Width,m_Dims.Height);
-        if(Updated())
+        if(m_Redraw)
         {
             Redraw = true;
+            m_Redraw = false;
             View.Clear();
         }
         SetUpdated(false);

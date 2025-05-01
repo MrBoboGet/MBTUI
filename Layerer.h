@@ -16,6 +16,8 @@ namespace MBTUI
         std::vector<Layer> m_Layers;
         MBCLI::Dimensions m_Dims;
         size_t m_ActiveLayerIndex = 0;
+
+        bool m_Redraw = false;
     public:
 
         void AddLayer(MBUtility::SmartPtr<MBCLI::Window> Window);

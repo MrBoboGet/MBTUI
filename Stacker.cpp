@@ -121,7 +121,14 @@ namespace MBTUI
         {
             m_SelectedIndex += AxisIncrease;
             m_SelectedIndex = std::max(m_SelectedIndex,0);
-            m_SelectedIndex = std::min(m_StackedWindows.size(),(size_t)m_SelectedIndex);
+            if(m_StackedWindows.size() > 0)
+            {
+                m_SelectedIndex = std::min(m_StackedWindows.size()-1,(size_t)m_SelectedIndex);
+            }
+            else
+            {
+                m_SelectedIndex = 0;
+            }
         }
         else if(FlowIncrease != 0)
         {
@@ -389,11 +396,11 @@ namespace MBTUI
             {
                 if(m_OverflowReversed)
                 {
-                    CurrentOffsets.*OtherFlowDirection -= m_FlowSizes[SubWindow.FlowIndex];
+                    CurrentOffsets.*OtherFlowDirection -= m_FlowSizes[CurrentFlowIndex];
                 }
                 else
                 {
-                    CurrentOffsets.*OtherFlowDirection += m_FlowSizes[SubWindow.FlowIndex];
+                    CurrentOffsets.*OtherFlowDirection += m_FlowSizes[CurrentFlowIndex];
                 }
                 CurrentFlowIndex = SubWindow.FlowIndex;
             }

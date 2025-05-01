@@ -13,7 +13,7 @@ namespace MBTUI
         MBCLI::TerminalColor m_Color = MBCLI::ANSITerminalColor::BrightWhite;
         MBCLI::TerminalColor m_BGColor = MBCLI::ANSITerminalColor::Black;
         MBCLI::TerminalColor m_HighlightColor = MBCLI::ANSITerminalColor::BrightWhite;
-        MBCLI::TerminalColor m_HighlightBGColor = MBCLI::ANSITerminalColor::BrightWhite;
+        MBCLI::TerminalColor m_HighlightBGColor = MBCLI::ANSITerminalColor::Black;
 
         bool m_Focus = false;
         bool m_Multiline = false;
