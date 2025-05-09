@@ -20,6 +20,7 @@ namespace MBTUI
         bool m_Recalculate = false;
 
         std::vector<std::pair<int_least32_t,int_least32_t>> m_LineOffsets;
+        std::vector<uint_least32_t> m_GraphemeOffsets;
 
         bool p_IsWord(unsigned char const* Begin,unsigned char const* End) const;
         std::vector<std::pair<int_least32_t,int_least32_t>> p_Tokenize(MBCLI::Dimensions Dims,std::string_view Content) const;

@@ -120,13 +120,24 @@ namespace MBTUI
     {
         if(Input.SpecialInput == MBCLI::SpecialKey::Esc)
         {
-            return false;   
+            return false; 
         }
-        m_Content += Input.CharacterInput.GetView();
-        m_Recalculate = true;
+        else if(Input.SpecialInput == MBCLI::SpecialKey::Backspace)
+        {
+            if(m_GraphemeOffsets.size() > 0)
+            {
+                auto LastGraphemeBegin = m_GraphemeOffsets.back();
+                m_Content.resize(LastGraphemeBegin);
+                m_GraphemeOffsets.pop_back();
+            }
+        }
+        else
+        {
+            m_GraphemeOffsets.push_back(m_Content.size());
+            m_Content += Input.CharacterInput.GetView();
+            m_Recalculate = true;
+        }
         SetUpdated(true);
-
-
         return true;
     }
     MBCLI::Dimensions Text::PreferedDimensions(MBCLI::Dimensions SuggestedDimensions)
@@ -193,6 +204,15 @@ namespace MBTUI
     void Text::SetText(std::string Content)
     {
         std::swap(m_Content,Content);
+        auto Begin = (unsigned char*)m_Content.data();
+        auto CurrentGrapheme = (unsigned char*)m_Content.data();
+        auto End = (unsigned char*)m_Content.data()+m_Content.size();
+        while(CurrentGrapheme != End)
+        {
+            m_GraphemeOffsets.push_back(CurrentGrapheme-Begin);
+            auto NextGrapheme = MBUnicode::GraphemeClusterSegmenter::ParseGraphemeCluster(CurrentGrapheme,End);
+            CurrentGrapheme = (unsigned char*)NextGrapheme;
+        }
         m_Recalculate = true;
         SetUpdated(true);
     }
