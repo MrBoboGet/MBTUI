@@ -23,15 +23,20 @@ namespace MBTUI
                 }
                 return true;
             }
-            else
+        }
+        if(m_InputPassthrough.size() > 0)
+        {
+            auto String = Input.GetStringRepresentation();
+            auto It = std::lower_bound(m_InputPassthrough.begin(),m_InputPassthrough.end(),String);
+            if(It != m_InputPassthrough.end() && *It == String)
             {
-                if(Input.SpecialInput == MBCLI::SpecialKey::Esc)
-                {
-                    return false;
-                }
+                return m_StackedWindows[m_SelectedIndex].Window->HandleInput(Input);
             }
         }
-
+        if(Input.SpecialInput == MBCLI::SpecialKey::Esc)
+        {
+            return false;
+        }
         int AxisIncrease = 0;
         int FlowIncrease = 0;
 
@@ -272,6 +277,11 @@ namespace MBTUI
             m_BorderDrawn = false;
         }
         m_BorderColor = Color;
+    }
+    void Stacker::SetInputPassthrough(std::vector<std::string> Keys)
+    {
+        m_InputPassthrough = std::move(Keys);
+        std::sort(m_InputPassthrough.begin(),m_InputPassthrough.end());
     }
 
     void Stacker::SetOverflowDirection(bool Reversed)

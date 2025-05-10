@@ -40,6 +40,7 @@ namespace MBTUI
         MBCLI::Dimensions m_PreferedDims;
 
         MBCLI::TerminalColor m_BorderColor = MBCLI::ANSITerminalColor::BrightWhite;
+        std::vector<std::string> m_InputPassthrough;
 
         int_least32_t m_SelectedIndex = -1;
 
@@ -167,6 +168,8 @@ namespace MBTUI
         void SetBorder(bool HasBorder);
 
         void SetBorderColor(MBCLI::TerminalColor Color);
+
+        void SetInputPassthrough(std::vector<std::string> Keys);
 
         void SetSizeSpec(SizeSpecification NewSpec)
         {
