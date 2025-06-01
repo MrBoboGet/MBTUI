@@ -10,10 +10,10 @@ namespace MBTUI
         MBCLI::Dimensions m_Dims;
         MBCLI::Dimensions m_LastWriteDims;
 
-        MBCLI::TerminalColor m_Color = MBCLI::ANSITerminalColor::BrightWhite;
-        MBCLI::TerminalColor m_BGColor = MBCLI::ANSITerminalColor::Black;
-        MBCLI::TerminalColor m_HighlightColor = MBCLI::ANSITerminalColor::BrightWhite;
-        MBCLI::TerminalColor m_HighlightBGColor = MBCLI::ANSITerminalColor::Black;
+        MBCLI::TerminalColor m_Color = MBCLI::ANSITerminalColor::Default;
+        MBCLI::TerminalColor m_BGColor = MBCLI::ANSITerminalColor::Default;
+        MBCLI::TerminalColor m_HighlightColor = MBCLI::ANSITerminalColor::Default;
+        MBCLI::TerminalColor m_HighlightBGColor = MBCLI::ANSITerminalColor::Default;
 
         bool m_Focus = false;
         bool m_Multiline = false;

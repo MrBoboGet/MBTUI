@@ -248,8 +248,16 @@ namespace MBTUI
             m_LineOffsets = p_Tokenize(View.GetDimensions(),m_Content);
             m_Recalculate = false;
         }
-        View.SetWriteColor(m_Focus ? m_HighlightColor : m_Color);
-        View.SetBGColor(m_Focus ? m_HighlightBGColor : m_BGColor);
+        auto WriteColor = m_Focus ? m_HighlightColor : m_Color;
+        auto BGColor = m_Focus ? m_HighlightBGColor : m_BGColor;
+        if(WriteColor != MBCLI::ANSITerminalColor::Default)
+        {
+            View.SetWriteColor(m_Focus ? m_HighlightColor : m_Color);
+        }
+        if(BGColor != MBCLI::ANSITerminalColor::Default)
+        {
+            View.SetBGColor(m_Focus ? m_HighlightBGColor : m_BGColor);
+        }
 
         int LineOffset = 0;
         for(auto It = m_LineOffsets.rbegin();It != m_LineOffsets.rend();++It)

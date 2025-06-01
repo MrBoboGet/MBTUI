@@ -52,7 +52,7 @@ namespace MBTUI
     void  Layerer::WriteBuffer(MBCLI::BufferView View,bool Redraw) 
     {
         //MBCLI::TerminalWindowBuffer ReturnValue(m_Dims.Width,m_Dims.Height);
-        if(m_Redraw)
+        if(m_Redraw || Redraw) 
         {
             Redraw = true;
             m_Redraw = false;
@@ -64,6 +64,7 @@ namespace MBTUI
             //ReturnValue.WriteBuffer(Layer.Window->GetBuffer(),Layer.RowOffset,Layer.ColumnOffset);
             if(Redraw || Layer.Window->Updated())
             {
+                //auto CurrentDims = Layer.PreviousDims
                 Layer.Window->WriteBuffer(View.SubView(Layer.RowOffset,Layer.ColumnOffset),Redraw);
             }
         }

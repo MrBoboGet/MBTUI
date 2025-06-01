@@ -10,6 +10,7 @@ namespace MBTUI
             int RowOffset = 0;
             int ColumnOffset = 0;
             MBCLI::Dimensions Dims;
+            MBCLI::Dimensions PreviousDims;
             MBUtility::SmartPtr<MBCLI::Window> Window;
         };
 

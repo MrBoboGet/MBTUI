@@ -166,7 +166,53 @@ namespace MBTUI
         }
         if(m_SelectedIndex < m_StackedWindows.size())
         {
-            m_StackedWindows[m_SelectedIndex].Window->SetFocus(true);
+            auto& SelectedWindow = m_StackedWindows[m_SelectedIndex];
+            try
+            {
+                SelectedWindow.Window->SetFocus(true);
+            }
+            catch(...)
+            {
+                   
+            }
+            //modify display offset so the element is included
+            int FirstRowOffset = m_Border ? 1 : 0;
+            int LastRowOffset = m_Border ? m_Dims.Height-1 : m_Dims.Height;
+            int FirstColumnOffset = m_Border ? 1 : 0;
+            int LastColumnOffset = m_Border ? m_Dims.Width-1 : m_Dims.Width;
+
+
+            auto AbsoluteOffset = SelectedWindow.Offsets;
+            AbsoluteOffset.Height += m_DisplayOffset.Height;
+            AbsoluteOffset.Width += m_DisplayOffset.Width;
+            if(AbsoluteOffset.Height < FirstRowOffset || AbsoluteOffset.Height + SelectedWindow.Dims.Height > LastRowOffset)
+            {
+                auto TopDiff = LastRowOffset - (AbsoluteOffset.Height + SelectedWindow.Dims.Height);
+                auto BottomDiff =FirstRowOffset-AbsoluteOffset.Height;
+                if(std::abs(TopDiff) < std::abs(BottomDiff))
+                {
+                    m_DisplayOffset.Height = LastRowOffset-(SelectedWindow.Offsets.Height + SelectedWindow.Dims.Height);
+                }
+                else
+                {
+                    m_DisplayOffset.Height = FirstRowOffset-SelectedWindow.Offsets.Height;
+                }
+                SetUpdated(true);
+            }
+            if(AbsoluteOffset.Width < FirstColumnOffset || AbsoluteOffset.Width + SelectedWindow.Dims.Width > LastColumnOffset)
+            {
+                auto TopDiff = LastColumnOffset - (AbsoluteOffset.Width + SelectedWindow.Dims.Width);
+                auto BottomDiff = FirstColumnOffset - AbsoluteOffset.Width;
+                if(std::abs(TopDiff) < std::abs(BottomDiff))
+                {
+                    m_DisplayOffset.Width= LastColumnOffset-(SelectedWindow.Offsets.Width + SelectedWindow.Dims.Width);
+                }
+                else
+                {
+                    m_DisplayOffset.Width = FirstColumnOffset-SelectedWindow.Offsets.Width;
+                }
+                SetUpdated(true);
+            }
         }
         return true;
     }
@@ -186,21 +232,27 @@ namespace MBTUI
         auto ClearView = View.SubView(0,0);
         if(m_Border)
         {
-            ClearView.ModifyAllowedArea(1,1);
+            ClearView.ModifyAllowedArea(1,1,m_Dims.Height-2,m_Dims.Width-2);
         }
         for(auto& Window : *this)
         {
-            if((Window.Offsets != Window.PreviousOffsets || Window.Dims != Window.PreviousDims) && 
+            auto DrawOffset = Window.Offsets;
+            DrawOffset.Height += m_DisplayOffset.Height;
+            DrawOffset.Width += m_DisplayOffset.Width;
+
+            if((DrawOffset != Window.PreviousOffsets || Window.Dims != Window.PreviousDims) && 
                     (Window.PreviousDims != MBCLI::Dimensions() && Window.PreviousOffsets != MBCLI::Dimensions()))
             {
                 if(!Redraw)
                 {
-                    ClearView.Clear(Window.PreviousOffsets.Height,
+                    ClearView.Clear(
+                               Window.PreviousOffsets.Height,
                                Window.PreviousOffsets.Width,
                                Window.PreviousDims.Width,
                                Window.PreviousDims.Height);
-                    ClearView.Clear(Window.Offsets.Height,
-                               Window.Offsets.Width,
+                    ClearView.Clear(
+                               DrawOffset.Height,
+                               DrawOffset.Width,
                                Window.Dims.Width,
                                Window.Dims.Height);
                 }
@@ -220,18 +272,25 @@ namespace MBTUI
         {
             return;
         }
+        if(m_Border)
+        {
+            View.ModifyAllowedArea(1,1,m_Dims.Height-2,m_Dims.Width-2);
+        }
         for(auto& Window : *this)
         {
             bool RedrawWindow = Redraw || Window.Redraw;
+            auto AbsoluteOffset = Window.Offsets;
+            AbsoluteOffset.Height += m_DisplayOffset.Height;
+            AbsoluteOffset.Width += m_DisplayOffset.Width;
             if(RedrawWindow || Window.Window->Updated())
             {
                 //MBCLI::Dimensions CurrentDrawOffset;
                 //CurrentDrawOffset.Height = std::max(DrawOffsets.Height-Window.Offsets.Height,0);
                 //CurrentDrawOffset.Width = std::max(DrawOffsets.Width-Window.Offsets.Width,0);
-                Window.Window->WriteBuffer(View.SubView(Window.Offsets.Height,Window.Offsets.Width,Window.Dims,DrawOffsets.Height,DrawOffsets.Width),RedrawWindow);
+                Window.Window->WriteBuffer(View.SubView(AbsoluteOffset.Height,AbsoluteOffset.Width,Window.Dims),RedrawWindow);
             }
             Window.PreviousDims = Window.Dims;
-            Window.PreviousOffsets = Window.Offsets;
+            Window.PreviousOffsets = AbsoluteOffset;
             Window.Redraw = false;
         }
     }
@@ -278,6 +337,62 @@ namespace MBTUI
         }
         m_BorderColor = Color;
     }
+    void Stacker::SetTextColor(MBCLI::TerminalColor Color)
+    {
+        if(m_TextColor != Color)
+        {
+            SetUpdated(true);   
+            m_Redraw = true;
+        }
+        m_TextColor = Color;
+    }
+    bool Stacker::ParseJustification(std::string_view View,Justification& Out)
+    {
+        bool ReturnValue = true;
+        if(View == "start")
+        {
+            Out = Justification::Start;
+        }
+        else if(View == "end")
+        {
+            Out = Justification::End;
+        }
+        else if(View == "center")
+        {
+            Out = Justification::Center;
+        }
+        else if(View == "between")
+        {
+            Out = Justification::Between;
+        }
+        else if(View == "evenly")
+        {
+            Out = Justification::Evenly;
+        }
+        else
+        {
+            ReturnValue = false;
+        }
+        return ReturnValue;
+    }
+    void Stacker::SetJustification(Justification NewJustification)
+    {
+        if(m_ContentJustification != NewJustification)
+        {
+            SetUpdated(true);
+        }
+        m_ContentJustification = NewJustification;
+    }
+    void Stacker::SetBGColor(MBCLI::TerminalColor Color)
+    {
+        if(m_BGColor != Color)
+        {
+            SetUpdated(true);   
+            m_Redraw = true;
+        }
+
+        m_BGColor = Color;
+    }
     void Stacker::SetInputPassthrough(std::vector<std::string> Keys)
     {
         m_InputPassthrough = std::move(Keys);
@@ -306,8 +421,7 @@ namespace MBTUI
 
         const size_t PreviousFlowSizes = m_FlowSizes.size();
         m_FlowSizes.clear();
-
-
+        std::vector<FlowRowInfo> FlowRows;
         bool NewDims = m_LastDims != m_Dims;
         m_LastDims = m_Dims;
         MBCLI::Dimensions CurrentDims = m_SizeSpec.GetDims(m_Dims);
@@ -319,6 +433,10 @@ namespace MBTUI
         if(CurrentDims.Width <= 0 || CurrentDims.Height <= 0)
         {
             return false;
+        }
+        if(m_StackedWindows.size() > 0)
+        {
+            FlowRows.emplace_back();
         }
         for(auto& SubWindow : *this)
         {
@@ -340,11 +458,14 @@ namespace MBTUI
             if(CurrentOverflow > CurrentDims.*MainFlowMember && CurrentOtherFlowSize != 0)
             {
                 CurrentFlowIndex += 1;
+                FlowRows.back().Size = CurrentOverflow;
                 CurrentOverflow = SubWindow.Dims.*MainFlowMember;
                 TotalOtherFlowSize += CurrentOtherFlowSize;
                 m_FlowSizes.push_back(CurrentOtherFlowSize);
+                FlowRows.emplace_back();
                 CurrentOtherFlowSize = SubWindow.Dims.*OtherFlowDirection;
             }
+            FlowRows.back().ElementCount += 1;
             CurrentOtherFlowSize = std::max(CurrentOtherFlowSize,SubWindow.Dims.*OtherFlowDirection);
 
             SubWindow.FlowIndex = CurrentFlowIndex; 
@@ -354,6 +475,10 @@ namespace MBTUI
         if(CurrentOtherFlowSize != 0 || CurrentFlowIndex == m_FlowSizes.size())
         {
             m_FlowSizes.push_back(CurrentOtherFlowSize);   
+        }
+        if(FlowRows.size() > 0)
+        {
+            FlowRows.back().Size = CurrentOverflow;
         }
         TotalOtherFlowSize += CurrentOtherFlowSize;
         m_PreferedDims.*OtherFlowDirection = TotalOtherFlowSize;
@@ -418,7 +543,26 @@ namespace MBTUI
             OffsetDims.*MainFlowMember += (SubWindow.FlowPosition - SubWindow.Dims.*MainFlowMember);
             SubWindow.Offsets = OffsetDims;
         }
-
+        //pass using justification, which only modifies SubWindow.FlowPosition
+        if(m_ContentJustification != Justification::Start)
+        {
+            size_t WindowIndex = 0;
+            auto begin = this->begin();
+            for(auto const& Row : FlowRows)
+            {
+                p_Justify(begin+WindowIndex,begin+WindowIndex+Row.ElementCount,Row,CurrentDims.*MainFlowMember,MainFlowMember,m_ContentJustification);
+                WindowIndex += Row.ElementCount;
+            }
+        }
+        //another pass to change position according to the current view offse
+        //if(std::tie(m_DisplayOffset.Width,m_DisplayOffset.Width) != std::tuple(0,0))
+        //{
+        //    for(auto& SubWindow : *this)
+        //    {
+        //        SubWindow.Offsets.Width += m_DisplayOffset.Width;
+        //        SubWindow.Offsets.Height += m_DisplayOffset.Height;
+        //    }
+        //}
         return ReturnValue;
     }
     void Stacker::SetFocus(bool IsFocused)
@@ -439,6 +583,19 @@ namespace MBTUI
     void Stacker::WriteBuffer(MBCLI::BufferView View,bool Redraw) 
     {
         bool AssignDims = m_AssignDims;
+        if(m_Redraw)
+        {
+            Redraw = true;   
+            m_Redraw = false;
+        }
+        if(m_TextColor != MBCLI::ANSITerminalColor::Default)
+        {
+            View.SetCascadingWriteColor(m_TextColor);
+        }
+        if(m_BGColor != MBCLI::ANSITerminalColor::Default)
+        {
+            View.SetCascadingBGColor(m_BGColor);
+        }
         if(View.GetDimensions() != m_Dims)
         {
             m_Dims = View.GetDimensions();

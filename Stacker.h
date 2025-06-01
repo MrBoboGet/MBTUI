@@ -11,6 +11,21 @@ namespace MBTUI
 {
     class Stacker : public MBCLI::Window
     {
+        public:
+        enum class Justification
+        {
+            Start,
+            End,
+            Center,
+            Between,
+            Evenly
+        };
+        private:
+        struct FlowRowInfo
+        {
+            int Size = 0;
+            int ElementCount = 0;
+        };
         struct SubWindow
         {
             MBUtility::SmartPtr<MBCLI::Window> Window;
@@ -29,17 +44,21 @@ namespace MBTUI
 
         };
         SizeSpecification m_SizeSpec;
+        Justification m_ContentJustification = Justification::Start;
+        bool m_Redraw = false;
 
         std::vector<SubWindow> m_StackedWindows;
-        MBCLI::TerminalWindowBuffer m_Buffer;
-
 
         MBCLI::Dimensions m_LastDrawDims;
         MBCLI::Dimensions m_LastDims;
+        MBCLI::Dimensions m_DisplayOffset = MBCLI::Dimensions(0,0);
         MBCLI::Dimensions m_Dims;
         MBCLI::Dimensions m_PreferedDims;
 
         MBCLI::TerminalColor m_BorderColor = MBCLI::ANSITerminalColor::BrightWhite;
+        MBCLI::TerminalColor m_TextColor = MBCLI::ANSITerminalColor::Default;
+        MBCLI::TerminalColor m_BGColor = MBCLI::ANSITerminalColor::Default;
+
         std::vector<std::string> m_InputPassthrough;
 
         int_least32_t m_SelectedIndex = -1;
@@ -69,6 +88,73 @@ namespace MBTUI
         void p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw);
 
         bool p_AssignDimensions();
+
+
+        template<typename ItType>
+        static void p_Justify(ItType begin,ItType end,FlowRowInfo Info,int RowSize,int MBCLI::Dimensions::* FlowMember,Justification JustificationType)
+        {
+            assert(RowSize >= Info.Size);
+            if(JustificationType == Justification::Start)
+            {
+                //
+            }
+            else if(JustificationType == Justification::End)
+            {
+                int SizeDiff = RowSize-Info.Size;
+                while(begin != end)
+                {
+                    SubWindow& Window = *begin;
+                    (Window.Offsets.*FlowMember) += SizeDiff;
+                    ++begin;
+                }
+            }
+            else if(JustificationType == Justification::Center)
+            {
+                int SizeDiff = (RowSize-Info.Size)/2;
+                while(begin != end)
+                {
+                    SubWindow& Window = *begin;
+                    (Window.Offsets.*FlowMember) += SizeDiff;
+                    ++begin;
+                }
+            }
+            else if(JustificationType == Justification::Between)
+            {
+                if(Info.ElementCount > 1)
+                {
+                    int ElemCount = Info.ElementCount-1;
+                    int SizeDiff = RowSize-Info.Size;
+                    int TotalIncrease = 0;
+                    ++begin;
+                    while(begin != end)
+                    {
+                        SubWindow& Window = *begin;
+                        int Increase = SizeDiff/ElemCount;
+                        TotalIncrease += Increase;
+                        (Window.Offsets.*FlowMember) += TotalIncrease;
+                        SizeDiff -= Increase;
+                        ElemCount -= 1;
+                        ++begin;
+                    }
+                }
+            }
+            else if(JustificationType == Justification::Evenly)
+            {
+                int ElemCount = Info.ElementCount+1;
+                int SizeDiff = RowSize-Info.Size;
+                int TotalIncrease = 0;
+                while(begin != end)
+                {
+                    SubWindow& Window = *begin;
+                    int Increase = SizeDiff/ElemCount;
+                    TotalIncrease += Increase;
+                    (Window.Offsets.*FlowMember) += TotalIncrease;
+                    SizeDiff -= Increase;
+                    ElemCount -= 1;
+                    ++begin;
+                }
+            }
+        }
 
         class ChildIterator : public MBUtility::Bidir_Base<ChildIterator,SubWindow>
                               , public MBUtility::RandomAccess_Base<ChildIterator,std::ptrdiff_t>
@@ -161,6 +247,8 @@ namespace MBTUI
         }
 
     public:
+
+
         void SetFlowDirection(bool IsVertical);
         void SetFlowWidth(int Size);
         void EnableOverflow(bool OverlowEnabled);
@@ -170,6 +258,11 @@ namespace MBTUI
         void SetBorderColor(MBCLI::TerminalColor Color);
 
         void SetInputPassthrough(std::vector<std::string> Keys);
+
+        static bool ParseJustification(std::string_view View,Justification& Out);
+        void SetJustification(Justification NewJustification);
+        void SetTextColor(MBCLI::TerminalColor Color);
+        void SetBGColor(MBCLI::TerminalColor Color);
 
         void SetSizeSpec(SizeSpecification NewSpec)
         {
