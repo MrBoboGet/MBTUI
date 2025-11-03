@@ -8,7 +8,7 @@
 
     ],
     "Language":"C++",
-    "Standard":"C++17",
+    "Standard":"C++20",
     "Targets": 
     {
         "MBTUI": 
@@ -22,6 +22,7 @@
                 "/SizeSpecification.cpp",
                 "/Stacker.cpp",
                 "/Text.cpp",
+                "/Spin.cpp",
                 "/Hider.cpp",
                 "/Absolute.cpp"
             ],
