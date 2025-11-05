@@ -175,6 +175,16 @@ namespace MBTUI
             {
                    
             }
+            p_SetDisplayOffset();
+        }
+        return true;
+    }
+    void Stacker::p_SetDisplayOffset()
+    {
+        if(m_SelectedIndex < m_StackedWindows.size())
+        {
+               
+            auto& SelectedWindow = m_StackedWindows[m_SelectedIndex];
             //modify display offset so the element is included
             int FirstRowOffset = m_Border ? 1 : 0;
             int LastRowOffset = m_Border ? m_Dims.Height-1 : m_Dims.Height;
@@ -214,7 +224,6 @@ namespace MBTUI
                 SetUpdated(true);
             }
         }
-        return true;
     }
     void Stacker::p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw)
     {
@@ -284,9 +293,6 @@ namespace MBTUI
             AbsoluteOffset.Width += m_DisplayOffset.Width;
             if(RedrawWindow || Window.Window->Updated())
             {
-                //MBCLI::Dimensions CurrentDrawOffset;
-                //CurrentDrawOffset.Height = std::max(DrawOffsets.Height-Window.Offsets.Height,0);
-                //CurrentDrawOffset.Width = std::max(DrawOffsets.Width-Window.Offsets.Width,0);
                 Window.Window->WriteBuffer(View.SubView(AbsoluteOffset.Height,AbsoluteOffset.Width,Window.Dims),RedrawWindow);
             }
             Window.PreviousDims = Window.Dims;
@@ -301,14 +307,6 @@ namespace MBTUI
             SetUpdated(true);
         }
         m_VerticalFlow = IsVertical;
-    }
-    void Stacker::SetFlowWidth(int Size)
-    {
-        if(m_FlowWidth != Size)
-        {
-            SetUpdated(true);
-        }
-        m_FlowWidth = Size;
     }
     void Stacker::EnableOverflow(bool OverlowEnabled)
     {
@@ -327,6 +325,14 @@ namespace MBTUI
             m_BorderDrawn = false;
         }
         m_Border = HasBorder;
+    }
+    void Stacker::SetAxisCount(int AxisCount)
+    {
+        if(m_AxisCount != AxisCount)
+        {
+            SetUpdated(true);
+        }
+        m_AxisCount = AxisCount;
     }
     void Stacker::SetBorderColor(MBCLI::TerminalColor Color)
     {
@@ -447,23 +453,21 @@ namespace MBTUI
                 SubWindow.Dims.Width = std::min(SubWindow.Dims.Width,CurrentDims.Width);
             }
             SubWindow.Dims.*MainFlowMember = SubWindow.Dims.*MainFlowMember < 0 ? 1 : SubWindow.Dims.*MainFlowMember;
-            if(m_Overflow)
-            {
-                SubWindow.Dims.*OtherFlowDirection = (m_FlowWidth > 0) ? m_FlowWidth : SubWindow.Dims.*OtherFlowDirection;
-            }
 
             CurrentOverflow += SubWindow.Dims.*MainFlowMember;
             MainFlowSize = std::max(MainFlowSize,CurrentOverflow);
-
-            if(CurrentOverflow > CurrentDims.*MainFlowMember && CurrentOtherFlowSize != 0)
+            if(m_Overflow)
             {
-                CurrentFlowIndex += 1;
-                FlowRows.back().Size = CurrentOverflow;
-                CurrentOverflow = SubWindow.Dims.*MainFlowMember;
-                TotalOtherFlowSize += CurrentOtherFlowSize;
-                m_FlowSizes.push_back(CurrentOtherFlowSize);
-                FlowRows.emplace_back();
-                CurrentOtherFlowSize = SubWindow.Dims.*OtherFlowDirection;
+                if( (CurrentOverflow > CurrentDims.*MainFlowMember || p_AxisCountExceeded(FlowRows.back().ElementCount))&& CurrentOtherFlowSize != 0)
+                {
+                    CurrentFlowIndex += 1;
+                    FlowRows.back().Size = CurrentOverflow;
+                    CurrentOverflow = SubWindow.Dims.*MainFlowMember;
+                    TotalOtherFlowSize += CurrentOtherFlowSize;
+                    m_FlowSizes.push_back(CurrentOtherFlowSize);
+                    FlowRows.emplace_back();
+                    CurrentOtherFlowSize = SubWindow.Dims.*OtherFlowDirection;
+                }
             }
             FlowRows.back().ElementCount += 1;
             CurrentOtherFlowSize = std::max(CurrentOtherFlowSize,SubWindow.Dims.*OtherFlowDirection);

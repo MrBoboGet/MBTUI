@@ -64,7 +64,8 @@ namespace MBTUI
         int_least32_t m_SelectedIndex = -1;
 
         size_t m_FlowIndex = -1;
-        int m_FlowWidth = 0;
+
+        int m_AxisCount = 0;
 
         bool m_BorderDrawn = false;
 
@@ -89,11 +90,22 @@ namespace MBTUI
 
         bool p_AssignDimensions();
 
+        void p_SetDisplayOffset();
+
+        bool p_AxisCountExceeded(int Count) const
+        {
+            return m_AxisCount >= Count;
+        }
+
 
         template<typename ItType>
         static void p_Justify(ItType begin,ItType end,FlowRowInfo Info,int RowSize,int MBCLI::Dimensions::* FlowMember,Justification JustificationType)
         {
-            assert(RowSize >= Info.Size);
+            //assert(RowSize >= Info.Size);
+            if(!(RowSize >= Info.Size))
+            {
+                return;
+            }
             if(JustificationType == Justification::Start)
             {
                 //
@@ -246,14 +258,16 @@ namespace MBTUI
             return ChildIterator::end(*this);
         }
 
+
+
     public:
 
 
         void SetFlowDirection(bool IsVertical);
-        void SetFlowWidth(int Size);
         void EnableOverflow(bool OverlowEnabled);
         void SetOverflowDirection(bool Reversed);
         void SetBorder(bool HasBorder);
+        void SetAxisCount(int AxisCount);
 
         void SetBorderColor(MBCLI::TerminalColor Color);
 
@@ -277,6 +291,46 @@ namespace MBTUI
         auto SelectedWindowIndex() const
         {
             return m_SelectedIndex;
+        }
+        void SetSelectedWindowIndex(int NewIndex) 
+        {
+            //Needed incase children has been changed since last draw
+            p_AssignDimensions();
+            if(m_SelectedIndex != -1)
+            {
+                try
+                {
+                    if(m_SelectedIndex < m_StackedWindows.size())
+                    {
+                        m_StackedWindows[m_SelectedIndex].Window->SetFocus(false);
+                    }
+                }
+                catch(...)
+                {
+                       
+                }
+            }
+            m_SelectedIndex = std::min(NewIndex,int(m_StackedWindows.size())-1);
+            if(m_SelectedIndex < 0)
+            {
+                m_SelectedIndex = 0;   
+            }
+            if(m_SelectedIndex < m_StackedWindows.size())
+            {
+
+                //m_DisplayOffset = m_StackedWindows.back().Offsets;
+                //m_DisplayOffset = MBCLI::Dimensions(0,0);
+                m_DisplayOffset = MBCLI::Dimensions(0,0);
+                p_SetDisplayOffset();
+                try
+                {
+                    m_StackedWindows[m_SelectedIndex].Window->SetFocus(true);
+                }
+                catch(...)
+                {
+                       
+                }
+            }
         }
         bool WindowSelected() const
         {
