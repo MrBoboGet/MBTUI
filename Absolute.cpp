@@ -41,6 +41,7 @@ namespace MBTUI
     }
     MBCLI::Dimensions Absolute::PreferedDimensions(MBCLI::Dimensions SuggestedDimensions)
     {
+        m_ParentContainerSize = SuggestedDimensions;
         return MBCLI::Dimensions(0,0);
     }
     void Absolute::SetFocus(bool IsFocused) 
@@ -117,7 +118,7 @@ namespace MBTUI
         ReturnValue.Height = 0;
         ReturnValue.Width = 0;
 
-        auto ContainerDims = !m_Relative ?  View.GetScreenDims() : View.GetDimensions();
+        auto ContainerDims = !m_Relative ?  View.GetScreenDims() : m_ParentContainerSize;
         
         if(m_Orientation == Orientation::Center)
         {
@@ -168,7 +169,7 @@ namespace MBTUI
                 {
                     if(m_Relative)
                     {
-                        m_SubDims = m_SubWindow->PreferedDimensions(View.GetScreenDims());
+                        m_SubDims = m_SubWindow->PreferedDimensions(m_ParentContainerSize);
                     }
                     else
                     {

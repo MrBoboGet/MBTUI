@@ -1,6 +1,6 @@
 #pragma once
 #include <MBCLI/Window.h>
-
+#include "SizeSpecification.h"
 
 
 
@@ -25,7 +25,9 @@ namespace MBTUI
         MBUtility::SmartPtr<MBCLI::Window> m_SubWindow;
         
         MBCLI::Dimensions m_SubDims;
-
+        SizeSpecification m_SizeSpec;
+        //sketchy 
+        MBCLI::Dimensions m_ParentContainerSize;
 
         MBCLI::Dimensions m_PreviousWriteOffsets;
         MBCLI::Dimensions m_PreviousWriteDims;
@@ -55,6 +57,15 @@ namespace MBTUI
         MBCLI::Dimensions GetOffsets() const
         {
             return MBCLI::Dimensions(m_ColumnOffset,m_RowOffset);
+        }
+        void SetSizeSpec(SizeSpecification NewSpec)
+        {
+            m_SizeSpec = NewSpec;   
+            SetUpdated(true);
+        }
+        SizeSpecification GetSizeSpec()
+        {
+            return m_SizeSpec;   
         }
 
         void SetOrientation(Orientation NewOrientation);

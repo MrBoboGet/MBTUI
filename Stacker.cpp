@@ -277,10 +277,10 @@ namespace MBTUI
             View.SetWriteColor(PreviousColor);
             m_BorderDrawn = true;
         }
-        if(m_Dims.Width <= 0 || m_Dims.Height <= 0)
-        {
-            return;
-        }
+        //if(m_Dims.Width <= 0 || m_Dims.Height <= 0)
+        //{
+        //    return;
+        //}
         if(m_Border)
         {
             View.ModifyAllowedArea(1,1,m_Dims.Height-2,m_Dims.Width-2);

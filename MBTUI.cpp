@@ -170,6 +170,10 @@ namespace MBTUI
                 {
                     m_EnterFunc(CurrentLine);
                 }
+                if(m_Oneshot)
+                {
+                    return false;   
+                }
                 return true;
             }
             else if(Input.CharacterInput == '\t')
@@ -284,20 +288,13 @@ namespace MBTUI
         ReturnValue.Width = SuggestedDimensions.Width;
         return ReturnValue;
     }
-    void REPL::SetMaxDims(MBCLI::Dimensions Dims)
-    {
-        m_MaxDims = Dims;
-    }
     
     void  REPL::WriteBuffer(MBCLI::BufferView SuppliedView,bool Redraw) 
     {
-        auto View = SuppliedView.SubView(0,0,MBCLI::Dimensions(SuppliedView.GetDimensions().Width,1));
+        auto Dims = m_SizeSpec.GetDims(SuppliedView.GetDimensions());
+        auto View = SuppliedView.SubView(0,0,MBCLI::Dimensions(Dims.Width,1));
         View.Clear();
         SetUpdated(false);
-        m_Dims = View.GetDimensions();
-        MBCLI::Dimensions Dims = m_Dims;
-        Dims.Height = m_MaxDims.Height < 0 ? Dims.Height : std::min(m_MaxDims.Height,Dims.Height);
-        Dims.Width = m_MaxDims.Width < 0 ? Dims.Width : std::min(m_MaxDims.Width,Dims.Width);
         
         //int i = 0;
         //for(auto const& Character : m_LineBuffer)

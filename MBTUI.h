@@ -3,6 +3,7 @@
 #include <MBCLI/Window.h>
 
 #include <MBUtility/MOFunction.h>
+#include "SizeSpecification.h"
 
 namespace MBTUI
 {
@@ -22,6 +23,8 @@ namespace MBTUI
         size_t m_CurrentCommandIndex = -1;
         int m_CursorPosition = 0;
         uint_least32_t m_PreviousWriteSize = 0;
+        bool m_Oneshot = false;
+        SizeSpecification m_SizeSpec;
 
         std::vector<MBUnicode::GraphemeCluster> m_LineBuffer;
         MBCLI::Dimensions m_Dims;
@@ -45,7 +48,21 @@ namespace MBTUI
         {
             return m_LineBuffer;   
         }
-        void SetMaxDims(MBCLI::Dimensions Dims);
+        void SetOneshot(bool Oneshot)
+        {
+            m_Oneshot = Oneshot;   
+        }
+
+        void SetSizeSpec(SizeSpecification NewSpec)
+        {
+            m_SizeSpec = NewSpec;   
+            SetUpdated(true);
+        }
+        SizeSpecification GetSizeSpec()
+        {
+            return m_SizeSpec;   
+        }
+
         virtual bool HandleInput(MBCLI::ConsoleInput const& Input) override;
         virtual void SetFocus(bool IsFocused) override;
         virtual MBCLI::CursorInfo GetCursorInfo() override;

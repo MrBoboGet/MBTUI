@@ -47,6 +47,10 @@ namespace MBTUI
         if(std::holds_alternative<int>(Spec))
         {
             ReturnValue = std::get<int>(Spec);
+            if(ReturnValue < 0)
+            {
+                ReturnValue = OriginalSize + ReturnValue;
+            }
         }
         else if(std::holds_alternative<Percent>(Spec))
         {
