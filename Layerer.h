@@ -37,5 +37,6 @@ namespace MBTUI
         virtual void SetFocus(bool IsFocused) override;
         virtual MBCLI::CursorInfo GetCursorInfo() override;
         virtual void WriteBuffer(MBCLI::BufferView View,bool Redraw) override;
+        virtual void RemoveFromTree() override;
     };
 }

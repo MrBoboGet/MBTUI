@@ -373,6 +373,13 @@ namespace MBTUI
         }
         void ClearChildren()
         {
+            for(auto& Child : m_StackedWindows)
+            {
+                if(Child.Window->NeedsCleanup())
+                {
+                    Child.Window->RemoveFromTree();
+                }
+            }
             m_StackedWindows.clear();
             m_ClearView = true;
             m_BorderDrawn = false;
@@ -390,5 +397,6 @@ namespace MBTUI
         virtual MBCLI::CursorInfo GetCursorInfo() override;
         virtual void WriteBuffer(MBCLI::BufferView View,bool Redraw) override;
         virtual MBCLI::Dimensions PreferedDimensions(MBCLI::Dimensions SuggestedDimensions) override;
+        virtual void RemoveFromTree() override;
     };
 }

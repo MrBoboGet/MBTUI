@@ -640,4 +640,14 @@ namespace MBTUI
         }
         return m_PreferedDims;
     }
+    void Stacker::RemoveFromTree()
+    {
+        for(auto& Child : m_StackedWindows)
+        {
+            if(Child.Window->NeedsCleanup())
+            {
+                Child.Window->RemoveFromTree();
+            }
+        }
+    }
 }

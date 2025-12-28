@@ -157,6 +157,7 @@ namespace MBTUI
             if(m_Handle.Empty() && m_Visible)
             {
                 m_Handle = View.RegisterOverlay();
+                SetNeedsCleanup(true);
             }
             if(!m_Handle.Empty() && !m_Visible)
             {
@@ -165,15 +166,15 @@ namespace MBTUI
             }
             if( (Updated() || Redraw) && m_Visible)
             {
-                if(m_SubWindow->Updated() || m_SubDims == MBCLI::Dimensions())
+                if(m_SubWindow->Updated() || m_SubDims == MBCLI::Dimensions() || (m_Redraw || Redraw))
                 {
                     if(m_Relative)
                     {
-                        m_SubDims = m_SubWindow->PreferedDimensions(m_ParentContainerSize);
+                        m_SubDims = m_SubWindow->PreferedDimensions(m_SizeSpec.GetDims( m_ParentContainerSize));
                     }
                     else
                     {
-                        m_SubDims = m_SubWindow->PreferedDimensions(View.GetScreenDims());
+                        m_SubDims = m_SubWindow->PreferedDimensions(m_SizeSpec.GetDims(View.GetScreenDims()));
                     }
                 }
                 MBCLI::Dimensions Dims;
@@ -207,6 +208,14 @@ namespace MBTUI
             m_Redraw = false;
             SetUpdated(false);   
         }
+    }
+    void Absolute::RemoveFromTree() 
+    {
+        if(m_SubWindow != nullptr &&  m_SubWindow->NeedsCleanup())
+        {
+            m_SubWindow->RemoveFromTree();
+        }
+        m_Handle.Remove();
     }
 }
 

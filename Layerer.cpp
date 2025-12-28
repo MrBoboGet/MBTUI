@@ -17,8 +17,16 @@ namespace MBTUI
     }
     void Layerer::PopLayer()
     {
+        if(m_Layers.size() == 0)
+        {
+            return;
+        }
         SetUpdated(true);
         m_Redraw = true;
+        if(m_Layers.back().Window->NeedsCleanup())
+        {
+            m_Layers.back().Window->RemoveFromTree();
+        }
         m_Layers.pop_back();
         m_ActiveLayerIndex = m_Layers.size()-1;
         if(m_ActiveLayerIndex < m_Layers.size())
@@ -65,8 +73,20 @@ namespace MBTUI
             if(Redraw || Layer.Window->Updated())
             {
                 //auto CurrentDims = Layer.PreviousDims
-                Layer.Window->WriteBuffer(View.SubView(Layer.RowOffset,Layer.ColumnOffset),Redraw);
+                auto SubDims = Layer.Window->PreferedDimensions(View.GetDimensions());
+                Layer.Window->WriteBuffer(View.SubView(Layer.RowOffset,Layer.ColumnOffset,SubDims),Redraw);
             }
+        }
+    }
+    void Layerer::RemoveFromTree() 
+    {
+        if(m_Layers.size() == 0)
+        {
+            return;
+        }
+        for(auto& Layer : m_Layers)
+        {
+            Layer.Window->RemoveFromTree();
         }
     }
 }

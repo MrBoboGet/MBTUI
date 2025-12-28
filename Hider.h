@@ -12,6 +12,10 @@ namespace MBTUI
     public:
         void SetSubwindow(MBUtility::SmartPtr<MBCLI::Window> Child)
         {
+            if(m_SubWindow != nullptr && m_SubWindow->NeedsCleanup())
+            {
+                m_SubWindow->RemoveFromTree();
+            }
             m_SubWindow = std::move(Child);
             SetChild(*m_SubWindow);
             SetUpdated(true);
@@ -19,11 +23,18 @@ namespace MBTUI
 
         void SetVisible(bool Visible);
 
-        virtual bool HandleInput(MBCLI::ConsoleInput const& Input);
-        virtual MBCLI::Dimensions PreferedDimensions(MBCLI::Dimensions SuggestedDimensions);
-        virtual void SetFocus(bool IsFocused);
-        virtual MBCLI::CursorInfo GetCursorInfo();
+        virtual bool HandleInput(MBCLI::ConsoleInput const& Input) override;
+        virtual MBCLI::Dimensions PreferedDimensions(MBCLI::Dimensions SuggestedDimensions) override;
+        virtual void SetFocus(bool IsFocused) override;
+        virtual MBCLI::CursorInfo GetCursorInfo() override;
         //virtual TerminalWindowBuffer GetBuffer() { return TerminalWindowBuffer();};
-        virtual void WriteBuffer(MBCLI::BufferView View,bool Redraw);
+        virtual void WriteBuffer(MBCLI::BufferView View,bool Redraw) override;
+        virtual void RemoveFromTree() override
+        {
+            if(m_SubWindow != nullptr && m_SubWindow->NeedsCleanup())
+            {
+                m_SubWindow->RemoveFromTree();
+            }
+        }
     };
 }
