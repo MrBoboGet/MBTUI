@@ -317,9 +317,6 @@ namespace MBTUI
             }
             if(m_SelectedIndex < m_StackedWindows.size())
             {
-
-                //m_DisplayOffset = m_StackedWindows.back().Offsets;
-                //m_DisplayOffset = MBCLI::Dimensions(0,0);
                 m_DisplayOffset = MBCLI::Dimensions(0,0);
                 p_SetDisplayOffset();
                 try

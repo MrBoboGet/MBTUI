@@ -1,6 +1,8 @@
 #pragma once
 #include "MBTUI.h"
 #include <optional>
+#include <thread>
+#include <condition_variable>
 
 namespace MBTUI
 {

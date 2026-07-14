@@ -16,10 +16,6 @@ namespace MBTUI
                 if(!Result)
                 {
                     m_SubWindowActive = false;
-                    //if(m_SelectedIndex != -1 && m_SelectedIndex < m_StackedWindows.size())
-                    //{
-                    //    m_StackedWindows[m_SelectedIndex].Window->SetFocus(false);
-                    //}
                 }
                 return true;
             }
@@ -43,10 +39,6 @@ namespace MBTUI
         if(Input.CharacterInput == "i")
         {
             m_SubWindowActive = true;   
-            //if(m_SelectedIndex != -1 && m_SelectedIndex < m_StackedWindows.size())
-            //{
-            //    m_StackedWindows[m_SelectedIndex].Window->SetFocus(true);
-            //}
             return true;
         }
 
@@ -277,10 +269,6 @@ namespace MBTUI
             View.SetWriteColor(PreviousColor);
             m_BorderDrawn = true;
         }
-        //if(m_Dims.Width <= 0 || m_Dims.Height <= 0)
-        //{
-        //    return;
-        //}
         if(m_Border)
         {
             View.ModifyAllowedArea(1,1,m_Dims.Height-2,m_Dims.Width-2);
@@ -508,7 +496,6 @@ namespace MBTUI
             }
         }
 
-
         //Calculate the absolut offsets
 
         MBCLI::Dimensions CurrentOffsets;
@@ -558,15 +545,6 @@ namespace MBTUI
                 WindowIndex += Row.ElementCount;
             }
         }
-        //another pass to change position according to the current view offse
-        //if(std::tie(m_DisplayOffset.Width,m_DisplayOffset.Width) != std::tuple(0,0))
-        //{
-        //    for(auto& SubWindow : *this)
-        //    {
-        //        SubWindow.Offsets.Width += m_DisplayOffset.Width;
-        //        SubWindow.Offsets.Height += m_DisplayOffset.Height;
-        //    }
-        //}
         return ReturnValue;
     }
     void Stacker::SetFocus(bool IsFocused)
@@ -610,6 +588,7 @@ namespace MBTUI
         {
             View.Clear();   
             m_ClearView = false;
+            Redraw = true;
         }
         m_AssignDims = false;
         if(AssignDims || ChildUpdated())
