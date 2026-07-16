@@ -62,6 +62,7 @@ namespace MBTUI
         std::vector<std::string> m_InputPassthrough;
 
         int_least32_t m_SelectedIndex = -1;
+        bool m_DisplayOffsetsCalculated = false;
 
         size_t m_FlowIndex = -1;
 
@@ -365,6 +366,7 @@ namespace MBTUI
             auto& NewSubwindow = m_StackedWindows.emplace_back();
             NewSubwindow.Window = std::move(NewWindow);
             m_AssignDims = true;
+            m_DisplayOffsetsCalculated = false;
             SetChild(*NewSubwindow.Window);
             SetUpdated(true);
         }
@@ -380,6 +382,8 @@ namespace MBTUI
             m_StackedWindows.clear();
             m_ClearView = true;
             m_BorderDrawn = false;
+            m_DisplayOffsetsCalculated = false;
+            m_DisplayOffset = MBCLI::Dimensions(0,0);
             SetUpdated(true);
         }
         void SetReversed(bool Reversed)
@@ -387,6 +391,7 @@ namespace MBTUI
             m_Reversed = true;
             m_ClearView = true;
             m_BorderDrawn = false;
+            m_DisplayOffsetsCalculated = false;
             SetUpdated(true);
         }
         virtual bool HandleInput(MBCLI::ConsoleInput const& Input) override;

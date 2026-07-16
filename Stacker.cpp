@@ -182,7 +182,12 @@ namespace MBTUI
             int LastRowOffset = m_Border ? m_Dims.Height-1 : m_Dims.Height;
             int FirstColumnOffset = m_Border ? 1 : 0;
             int LastColumnOffset = m_Border ? m_Dims.Width-1 : m_Dims.Width;
-
+            if(SelectedWindow.Offsets == MBCLI::Dimensions())
+            {
+                //delay offset calculation to after dimensions are assigned
+                return;
+            }
+            m_DisplayOffsetsCalculated = true;
 
             auto AbsoluteOffset = SelectedWindow.Offsets;
             AbsoluteOffset.Height += m_DisplayOffset.Height;
@@ -219,6 +224,10 @@ namespace MBTUI
     }
     void Stacker::p_UpdateBuffer(MBCLI::BufferView& View,bool Redraw)
     {
+        if(!m_DisplayOffsetsCalculated)
+        {
+            p_SetDisplayOffset();
+        }
         MBCLI::Dimensions DrawOffsets;
         if(m_Border)
         {
@@ -293,6 +302,7 @@ namespace MBTUI
         if(m_VerticalFlow != IsVertical)
         {
             SetUpdated(true);
+            m_DisplayOffsetsCalculated = false;
         }
         m_VerticalFlow = IsVertical;
     }
@@ -301,6 +311,7 @@ namespace MBTUI
         if(m_Overflow != OverlowEnabled)
         {
             SetUpdated(true);
+            m_DisplayOffsetsCalculated = false;
         }
         m_Overflow = OverlowEnabled;
     }
@@ -549,7 +560,10 @@ namespace MBTUI
     }
     void Stacker::SetFocus(bool IsFocused)
     {
-        //
+        if(!IsFocused && m_SelectedIndex < m_StackedWindows.size() )
+        {
+            m_StackedWindows[m_SelectedIndex].Window->SetFocus(false);
+        }
     }
     MBCLI::CursorInfo Stacker::GetCursorInfo() 
     {
@@ -583,6 +597,8 @@ namespace MBTUI
             m_Dims = View.GetDimensions();
             AssignDims = true;
             m_BorderDrawn = false;
+            m_DisplayOffsetsCalculated = false;
+            m_DisplayOffset = MBCLI::Dimensions(0,0);
         }
         if(m_ClearView)
         {

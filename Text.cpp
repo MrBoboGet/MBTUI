@@ -147,13 +147,13 @@ namespace MBTUI
 
         if(!m_Multiline)
         {
-            Dims.Width = m_Content.size();
-            Dims.Height = 1;
+            Dims.Width = m_SizeSpec.WidthSpecified() ? Dims.Width : m_Content.size();
+            Dims.Height = m_SizeSpec.HeightSpecified() ? Dims.Height : 1;
         }
         else
         {
             auto Tokens = p_Tokenize(Dims,m_Content);
-            Dims.Height = Tokens.size();
+            Dims.Height = m_SizeSpec.HeightSpecified() ? Dims.Height : Tokens.size();
         }
        
         if(Dims.Width > SuggestedDimensions.Width)
@@ -258,6 +258,7 @@ namespace MBTUI
         {
             View.SetBGColor(m_Focus ? m_HighlightBGColor : m_BGColor);
         }
+
 
         int LineOffset = 0;
         for(auto It = m_LineOffsets.rbegin();It != m_LineOffsets.rend();++It)
