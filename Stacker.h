@@ -91,7 +91,7 @@ namespace MBTUI
 
         bool p_AssignDimensions();
 
-        void p_SetDisplayOffset();
+        void p_SetDisplayOffset(MBCLI::BufferView& View);
 
         bool p_AxisCountExceeded(int Count) const
         {
@@ -102,17 +102,9 @@ namespace MBTUI
         template<typename ItType>
         static void p_Justify(ItType begin,ItType end,FlowRowInfo Info,int RowSize,int MBCLI::Dimensions::* FlowMember,Justification JustificationType)
         {
-            //assert(RowSize >= Info.Size);
-            if(!(RowSize >= Info.Size))
+            if(JustificationType == Justification::End)
             {
-                return;
-            }
-            if(JustificationType == Justification::Start)
-            {
-                //
-            }
-            else if(JustificationType == Justification::End)
-            {
+                   
                 int SizeDiff = RowSize-Info.Size;
                 while(begin != end)
                 {
@@ -120,6 +112,15 @@ namespace MBTUI
                     (Window.Offsets.*FlowMember) += SizeDiff;
                     ++begin;
                 }
+                return;
+            }
+            if(!(RowSize >= Info.Size))
+            {
+                return;
+            }
+            if(JustificationType == Justification::Start)
+            {
+                //
             }
             else if(JustificationType == Justification::Center)
             {
@@ -318,8 +319,8 @@ namespace MBTUI
             }
             if(m_SelectedIndex < m_StackedWindows.size())
             {
-                m_DisplayOffset = MBCLI::Dimensions(0,0);
-                p_SetDisplayOffset();
+                //m_DisplayOffset = MBCLI::Dimensions(0,0);
+                m_DisplayOffsetsCalculated = false;
                 try
                 {
                     m_StackedWindows[m_SelectedIndex].Window->SetFocus(true);

@@ -167,21 +167,25 @@ namespace MBTUI
             {
                    
             }
-            p_SetDisplayOffset();
+            m_DisplayOffsetsCalculated = false;
         }
         return true;
     }
-    void Stacker::p_SetDisplayOffset()
+    void Stacker::p_SetDisplayOffset(MBCLI::BufferView& View)
     {
         if(m_SelectedIndex < m_StackedWindows.size())
         {
                
             auto& SelectedWindow = m_StackedWindows[m_SelectedIndex];
             //modify display offset so the element is included
-            int FirstRowOffset = m_Border ? 1 : 0;
-            int LastRowOffset = m_Border ? m_Dims.Height-1 : m_Dims.Height;
-            int FirstColumnOffset = m_Border ? 1 : 0;
-            int LastColumnOffset = m_Border ? m_Dims.Width-1 : m_Dims.Width;
+            auto ModifiableBox = View.GetModifiableBox();
+            //calculations assume that Max is one past index of modifable index instead of the index of the modfiable row/col
+            ModifiableBox.LastCol += 1;
+            ModifiableBox.LastRow += 1;
+            int FirstRowOffset = ModifiableBox.FirstRow+ (m_Border ? 1 : 0);
+            int LastRowOffset = ModifiableBox.LastRow + (m_Border ? -1 : 0);
+            int FirstColumnOffset = ModifiableBox.FirstCol + ( m_Border ? 1 : 0);
+            int LastColumnOffset = ModifiableBox.LastCol + ( m_Border ? -1 : 0);
             if(SelectedWindow.Offsets == MBCLI::Dimensions())
             {
                 //delay offset calculation to after dimensions are assigned
@@ -226,7 +230,7 @@ namespace MBTUI
     {
         if(!m_DisplayOffsetsCalculated)
         {
-            p_SetDisplayOffset();
+            p_SetDisplayOffset(View);
         }
         MBCLI::Dimensions DrawOffsets;
         if(m_Border)
@@ -555,6 +559,15 @@ namespace MBTUI
                 p_Justify(begin+WindowIndex,begin+WindowIndex+Row.ElementCount,Row,CurrentDims.*MainFlowMember,MainFlowMember,m_ContentJustification);
                 WindowIndex += Row.ElementCount;
             }
+            //if(m_ContentJustification == Justification::End && m_StackedWindows.size() > 0 && m_DisplayOffset == MBCLI::Dimensions(0,0))
+            //{
+            //    auto& FirstWindow = m_Reversed ? m_StackedWindows.back() : m_StackedWindows[0];
+            //    auto WindowEnd = FirstWindow.Offsets.*MainFlowMember + FirstWindow.Dims.*MainFlowMember;
+            //    if(WindowEnd - 1 > CurrentDims.*MainFlowMember)
+            //    {
+            //        m_DisplayOffset.*MainFlowMember = (CurrentDims.*MainFlowMember - WindowEnd) + 1;
+            //    }
+            //}
         }
         return ReturnValue;
     }
@@ -598,7 +611,6 @@ namespace MBTUI
             AssignDims = true;
             m_BorderDrawn = false;
             m_DisplayOffsetsCalculated = false;
-            m_DisplayOffset = MBCLI::Dimensions(0,0);
         }
         if(m_ClearView)
         {
