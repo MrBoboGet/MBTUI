@@ -24,6 +24,7 @@ namespace MBTUI
         struct FlowRowInfo
         {
             int Size = 0;
+            int OtherFlowSize = 0;
             int ElementCount = 0;
         };
         struct SubWindow
@@ -100,7 +101,7 @@ namespace MBTUI
 
 
         template<typename ItType>
-        static void p_Justify(ItType begin,ItType end,FlowRowInfo Info,int RowSize,int MBCLI::Dimensions::* FlowMember,Justification JustificationType)
+        static void p_Justify(ItType begin,ItType end,MBCLI::Dimensions Dims,bool Overflowed,FlowRowInfo Info,int RowSize,int MBCLI::Dimensions::* FlowMember,int MBCLI::Dimensions::* OtherFlowMember,Justification JustificationType)
         {
             if(JustificationType == Justification::End)
             {
@@ -124,11 +125,14 @@ namespace MBTUI
             }
             else if(JustificationType == Justification::Center)
             {
+                //special case if only 
                 int SizeDiff = (RowSize-Info.Size)/2;
+                int OtherFlowDiff = Overflowed ? 0 : std::max((Dims.*OtherFlowMember- Info.OtherFlowSize )/2,0);
                 while(begin != end)
                 {
                     SubWindow& Window = *begin;
                     (Window.Offsets.*FlowMember) += SizeDiff;
+                    (Window.Offsets.*OtherFlowMember) += OtherFlowDiff;
                     ++begin;
                 }
             }

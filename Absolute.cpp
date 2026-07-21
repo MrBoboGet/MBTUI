@@ -136,7 +136,7 @@ namespace MBTUI
         }
         else if(m_Orientation == Orientation::Right)
         {
-            ReturnValue.Width = ContainerDims.Width;
+            ReturnValue.Width = ContainerDims.Width-m_SubDims.Width;
         }
         else if(m_Orientation == Orientation::Above)
         {

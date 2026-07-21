@@ -465,6 +465,7 @@ namespace MBTUI
                 {
                     CurrentFlowIndex += 1;
                     FlowRows.back().Size = CurrentOverflow;
+                    FlowRows.back().OtherFlowSize = CurrentOtherFlowSize;
                     CurrentOverflow = SubWindow.Dims.*MainFlowMember;
                     TotalOtherFlowSize += CurrentOtherFlowSize;
                     m_FlowSizes.push_back(CurrentOtherFlowSize);
@@ -474,6 +475,7 @@ namespace MBTUI
             }
             FlowRows.back().ElementCount += 1;
             CurrentOtherFlowSize = std::max(CurrentOtherFlowSize,SubWindow.Dims.*OtherFlowDirection);
+            FlowRows.back().OtherFlowSize = CurrentOtherFlowSize;
 
             SubWindow.FlowIndex = CurrentFlowIndex; 
             SubWindow.FlowPosition = CurrentOverflow;
@@ -556,7 +558,7 @@ namespace MBTUI
             auto begin = this->begin();
             for(auto const& Row : FlowRows)
             {
-                p_Justify(begin+WindowIndex,begin+WindowIndex+Row.ElementCount,Row,CurrentDims.*MainFlowMember,MainFlowMember,m_ContentJustification);
+                p_Justify(begin+WindowIndex,begin+WindowIndex+Row.ElementCount,CurrentDims,m_FlowSizes.size() > 1,Row,CurrentDims.*MainFlowMember,MainFlowMember,OtherFlowDirection,m_ContentJustification);
                 WindowIndex += Row.ElementCount;
             }
             //if(m_ContentJustification == Justification::End && m_StackedWindows.size() > 0 && m_DisplayOffset == MBCLI::Dimensions(0,0))
