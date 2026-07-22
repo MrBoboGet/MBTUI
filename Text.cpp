@@ -14,7 +14,7 @@ namespace MBTUI
         }
         return !(Begin[0] == ' ' || Begin[0] == '\t' || Begin[0] == '\v');
     }
-    std::vector<std::pair<int_least32_t,int_least32_t>> Text::p_Tokenize(MBCLI::Dimensions Dims,std::string_view Content) const
+    std::vector<std::pair<int_least32_t,int_least32_t>> Text::p_Tokenize(MBCLI::Dimensions Dims,std::string_view Content,int& OutWidth) const
     {
         std::vector<std::pair<int_least32_t,int_least32_t>> ReturnValue;
 
@@ -23,6 +23,7 @@ namespace MBTUI
         int_least32_t WordCharacters = 0;
 
         int CurrentLineCharacters = 0;
+        int MaxLineCharacters = 0;
 
         unsigned char const* const Begin = (unsigned const char *)Content.data();
         unsigned char const* NextChar = (unsigned const char *)Content.data();
@@ -33,7 +34,7 @@ namespace MBTUI
             auto Size = GraphemeEnd-NextChar;
             auto CurrentCharOffset = NextChar-Begin;
             auto CurrentCharEnd = GraphemeEnd-Begin;
-
+            MaxLineCharacters = std::max(CurrentLineCharacters,MaxLineCharacters);
             if(Size == 1 && *NextChar == '\n' || (Size == 2 && NextChar[0] == '\r' && NextChar[1] == '\n' ))
             {
                 ReturnValue.push_back({LineBegin,CurrentCharOffset});
@@ -93,6 +94,7 @@ namespace MBTUI
             }
             NextChar = GraphemeEnd;
         }
+        MaxLineCharacters = std::max(CurrentLineCharacters,MaxLineCharacters);
         if(LineBegin < Content.size())
         {
             if(m_Multiline || ReturnValue.size() == 0)
@@ -100,7 +102,7 @@ namespace MBTUI
                 ReturnValue.push_back({LineBegin,Content.size()});
             }
         }
-
+        OutWidth = MaxLineCharacters;
         return ReturnValue;
     }
     std::string_view Text::GetContent() const
@@ -152,8 +154,10 @@ namespace MBTUI
         }
         else
         {
-            auto Tokens = p_Tokenize(Dims,m_Content);
+            int Width = 0;
+            auto Tokens = p_Tokenize(Dims,m_Content,Width);
             Dims.Height = m_SizeSpec.HeightSpecified() ? Dims.Height : Tokens.size();
+            Dims.Width = m_SizeSpec.HeightSpecified() ? Dims.Width : Width;
         }
        
         if(Dims.Width > SuggestedDimensions.Width)
@@ -245,7 +249,8 @@ namespace MBTUI
         if(m_LastWriteDims != View.GetDimensions() || m_Recalculate)
         {
             m_LastWriteDims = View.GetDimensions();
-            m_LineOffsets = p_Tokenize(View.GetDimensions(),m_Content);
+            int Width = 0;
+            m_LineOffsets = p_Tokenize(View.GetDimensions(),m_Content,Width);
             m_Recalculate = false;
         }
         auto WriteColor = m_Focus ? m_HighlightColor : m_Color;
